@@ -1,0 +1,25 @@
+{
+  "name": "nft-data",
+  "version": "1.0.0",
+  "description": "OpenSea Agent Tool that provides structured NFT collection and market data to AI agents.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "validate-manifest": "npx @opensea/tool-sdk validate ./src/manifest.ts"
+  },
+  "dependencies": {
+    "@opensea/tool-sdk": "^0.31.0",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "vercel": "^37.0.0"
+  }
+}
