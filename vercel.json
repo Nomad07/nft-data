@@ -1,4 +1,6 @@
 {
+  "buildCommand": "npx tsc --noEmit",
+  "outputDirectory": ".",
   "rewrites": [
     {
       "source": "/.well-known/ai-tool/:slug",
