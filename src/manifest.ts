@@ -1,13 +1,6 @@
 ```ts
 import { defineManifest } from "@opensea/tool-sdk";
 
-/**
- * ERC-8257 Tool Manifest for NFT Data.
- *
- * The endpoint points to the production Vercel deployment.
- * The creatorAddress will be replaced with the separate Tool Registry
- * registration wallet before onchain registration.
- */
 export const manifest = defineManifest({
   type: "https://ercs.ethereum.org/ERCS/erc-8257#tool-manifest-v1",
   name: "NFT Data",
@@ -94,8 +87,6 @@ export const manifest = defineManifest({
 
   tags: ["nft", "trading"],
 
-  // Replace with the separate Tool Registry registration wallet
-  // before onchain registration.
   creatorAddress: "0x0000000000000000000000000000000000000000",
 });
 ```
