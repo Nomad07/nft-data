@@ -1,6 +1,12 @@
-```ts
 import { defineManifest } from "@opensea/tool-sdk";
 
+/**
+ * ERC-8257 Tool Manifest for NFT Data.
+ *
+ * The endpoint field must be updated to the actual deployed origin before
+ * onchain registration. The creatorAddress must be replaced with the wallet
+ * address that will call registerTool on the ToolRegistry contract.
+ */
 export const manifest = defineManifest({
   type: "https://ercs.ethereum.org/ERCS/erc-8257#tool-manifest-v1",
   name: "NFT Data",
@@ -10,11 +16,7 @@ export const manifest = defineManifest({
     "information, floor price, 24-hour sales and volume, total lifetime " +
     "statistics, and owner count sourced directly from the OpenSea API v2.",
   version: "1.0.0",
-
-  endpoint:
-    process.env.TOOL_ENDPOINT ??
-    "https://nft-data-kappa.vercel.app/api/get-collection-data",
-
+  endpoint: process.env.TOOL_ENDPOINT ?? "https://nft-data-kappa.vercel.app/api/get-collection-data",
   inputs: {
     type: "object",
     properties: {
@@ -27,30 +29,19 @@ export const manifest = defineManifest({
     },
     required: ["collection"],
   },
-
   outputs: {
     type: "object",
     properties: {
-      name: {
-        type: "string",
-        description: "Collection display name.",
-      },
-      slug: {
-        type: "string",
-        description: "Collection slug.",
-      },
+      name: { type: "string", description: "Collection display name." },
+      slug: { type: "string", description: "Collection slug." },
       contracts: {
         type: "array",
         description: "NFT contract addresses and their chains.",
         items: {
           type: "object",
           properties: {
-            address: {
-              type: "string",
-            },
-            chain: {
-              type: "string",
-            },
+            address: { type: "string" },
+            chain: { type: "string" },
           },
         },
       },
@@ -84,9 +75,7 @@ export const manifest = defineManifest({
       },
     },
   },
-
   tags: ["nft", "trading"],
-
+  // Replace with the deploying wallet address before onchain registration.
   creatorAddress: "0x0000000000000000000000000000000000000000",
 });
-```

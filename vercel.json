@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx tsc --noEmit",
+  "buildCommand": "npm install && ./node_modules/.bin/tsc --noEmit",
   "outputDirectory": ".",
   "rewrites": [
     {
