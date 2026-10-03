@@ -16,7 +16,7 @@ export const manifest = defineManifest({
     "information, floor price, 24-hour sales and volume, total lifetime " +
     "statistics, and owner count sourced directly from the OpenSea API v2.",
   version: "1.0.0",
-  endpoint: process.env.TOOL_ENDPOINT ?? "https://nft-data-kappa.vercel.app/api/get-collection-data",
+  endpoint: process.env.TOOL_ENDPOINT ?? "https://www.nftdata.app/api/get-collection-data",
   inputs: {
     type: "object",
     properties: {
@@ -100,8 +100,8 @@ export const manifest = defineManifest({
     },
   },
   tags: ["nft", "trading"],
-  image: "https://nft-data-kappa.vercel.app/nft-data-icon.svg",
-  featuredImage: "https://nft-data-kappa.vercel.app/nft-data-banner.svg",
+  image: "https://www.nftdata.app/nft-data-icon.svg",
+  featuredImage: "https://www.nftdata.app/nft-data-banner.svg",
   // Replace with the deploying wallet address before onchain registration.
   creatorAddress: "0x344143199642e87320785823c20c2df107d17534",
 });
