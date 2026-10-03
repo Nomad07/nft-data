@@ -61,6 +61,22 @@ export const manifest = defineManifest({
         type: "number",
         description: "Trading volume in the last 24 hours (in ETH).",
       },
+      seven_day_sales: {
+        type: "number",
+        description: "Number of sales in the last 7 days.",
+      },
+      seven_day_volume: {
+        type: "number",
+        description: "Trading volume in the last 7 days (in ETH).",
+      },
+      thirty_day_sales: {
+        type: "number",
+        description: "Number of sales in the last 30 days.",
+      },
+      thirty_day_volume: {
+        type: "number",
+        description: "Trading volume in the last 30 days (in ETH).",
+      },
       total_sales: {
         type: "number",
         description: "Total lifetime sales count.",
@@ -72,6 +88,14 @@ export const manifest = defineManifest({
       num_owners: {
         type: "number",
         description: "Current number of unique owners.",
+      },
+      total_supply: {
+        type: "number",
+        description: "Total number of NFTs in the collection. Null if not reported.",
+      },
+      created_date: {
+        type: "string",
+        description: "ISO 8601 date when the collection was created. Null if not reported.",
       },
     },
   },

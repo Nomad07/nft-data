@@ -12,6 +12,8 @@ export interface OpenSeaCollection {
   collection: string;
   name: string;
   contracts: Array<{ address: string; chain: string }>;
+  total_supply?: number | null;
+  created_date?: string | null;
 }
 
 /** Shape of Total returned by GET /api/v2/collections/{slug}/stats */

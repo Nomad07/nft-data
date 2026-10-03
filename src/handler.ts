@@ -26,9 +26,15 @@ const OutputSchema = z.object({
   floor_price_currency: z.string(),
   one_day_sales: z.number(),
   one_day_volume: z.number(),
+  seven_day_sales: z.number(),
+  seven_day_volume: z.number(),
+  thirty_day_sales: z.number(),
+  thirty_day_volume: z.number(),
   total_sales: z.number(),
   total_volume: z.number(),
   num_owners: z.number(),
+  total_supply: z.number().nullable(),
+  created_date: z.string().nullable(),
 });
 
 export type CollectionDataOutput = z.infer<typeof OutputSchema>;
