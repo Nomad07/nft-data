@@ -2,7 +2,7 @@
 
 An OpenSea Agent Tool that provides structured NFT collection and market data to AI agents via the [ERC-8257 Tool Registry](https://eips.ethereum.org/EIPS/eip-8257).
 
-**Live:** https://www.nftdata.app/
+**Live:** https://nftdata.app/
 
 **OpenSea Tool:** #778 on Base
 
@@ -20,7 +20,7 @@ The tool is registered on Base through the OpenSea ERC-8257 Tool Registry, while
 
 ```json
 {
-  "collection": "doodles-official"
+  "collection": "pudgypenguins"
 }
 ```
 
@@ -42,25 +42,27 @@ The tool is registered on Base through the OpenSea ERC-8257 Tool Registry, while
 
 ```json
 {
-  "name": "Doodles",
-  "slug": "doodles-official",
+  "name": "Pudgy Penguins",
+  "slug": "pudgypenguins",
   "contracts": [
     {
-      "address": "0x8a90cab2b38dba80c64b7734e58ee1db38b8992e",
+      "address": "0xbd3531da5cf5857e7cfaa92426877b022e612cf8",
       "chain": "ethereum"
     }
   ],
-  "floor_price": 1.85,
+  "floor_price": 3.09895,
   "floor_price_currency": "ETH",
-  "one_day_sales": 12,
-  "one_day_volume": 22.5,
-  "seven_day_sales": 42,
-  "seven_day_volume": 78.4,
-  "thirty_day_sales": 156,
-  "thirty_day_volume": 284.7,
-  "total_sales": 84210,
-  "total_volume": 98432.7,
-  "num_owners": 5021
+  "one_day_sales": 51,
+  "one_day_volume": 154.0991,
+  "seven_day_sales": 170,
+  "seven_day_volume": 544.4888,
+  "thirty_day_sales": 534,
+  "thirty_day_volume": 1801.344,
+  "total_sales": 92558,
+  "total_volume": 522232.3177,
+  "num_owners": 5062,
+  "total_supply": 8888,
+  "created_date": "2021-07-22"
 }
 ```
 
@@ -141,7 +143,7 @@ Test the API:
 ```bash
 curl -X POST http://localhost:3000/api/get-collection-data \
   -H "Content-Type: application/json" \
-  -d '{"collection":"doodles-official"}'
+  -d '{"collection":"pudgypenguins"}'
 ```
 
 Test the manifest:
@@ -170,7 +172,7 @@ The OpenSea API key is required by the server and must never be exposed in clien
 
 The production application is deployed on Vercel.
 
-**Website:** https://www.nftdata.app/
+**Website:** https://nftdata.app/
 
 **API:** https://www.nftdata.app/api/get-collection-data
 
@@ -200,7 +202,7 @@ nft-data/
 
 ## Links
 
-* Website: https://www.nftdata.app/
+* Website: https://nftdata.app/
 * GitHub: https://github.com/Nomad07/nft-data
 * OpenSea Tool #778: https://opensea.io/tools/erc8257/base/778
 * ERC-8257: https://eips.ethereum.org/EIPS/eip-8257
