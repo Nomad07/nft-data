@@ -26,10 +26,10 @@ const OutputSchema = z.object({
   floor_price_currency: z.string(),
   one_day_sales: z.number(),
   one_day_volume: z.number(),
-  seven_day_sales: z.number(),
-  seven_day_volume: z.number(),
-  thirty_day_sales: z.number(),
-  thirty_day_volume: z.number(),
+  seven_day_sales: z.number().nullable(),
+  seven_day_volume: z.number().nullable(),
+  thirty_day_sales: z.number().nullable(),
+  thirty_day_volume: z.number().nullable(),
   total_sales: z.number(),
   total_volume: z.number(),
   num_owners: z.number(),
@@ -58,7 +58,9 @@ export const toolHandler = createToolHandler({
         fetchCollectionStats(slug, apiKey),
       ]);
 
-      const oneDayStat = statsData.intervals.find((i) => i.interval === "one_day");
+      const oneDayStat    = statsData.intervals.find((i) => i.interval === "one_day");
+      const sevenDayStat  = statsData.intervals.find((i) => i.interval === "seven_day");
+      const thirtyDayStat = statsData.intervals.find((i) => i.interval === "thirty_day");
 
       return {
         name: collectionData.name,
@@ -68,9 +70,15 @@ export const toolHandler = createToolHandler({
         floor_price_currency: statsData.total.floor_price_symbol,
         one_day_sales: oneDayStat?.sales ?? 0,
         one_day_volume: oneDayStat?.volume ?? 0,
+        seven_day_sales:  sevenDayStat  ? sevenDayStat.sales   : null,
+        seven_day_volume: sevenDayStat  ? sevenDayStat.volume  : null,
+        thirty_day_sales:  thirtyDayStat ? thirtyDayStat.sales  : null,
+        thirty_day_volume: thirtyDayStat ? thirtyDayStat.volume : null,
         total_sales: statsData.total.sales,
         total_volume: statsData.total.volume,
         num_owners: statsData.total.num_owners,
+        total_supply:  collectionData.total_supply  ?? null,
+        created_date:  collectionData.created_date  ?? null,
       };
     } catch (err) {
       if (err instanceof OpenSeaApiError) {
