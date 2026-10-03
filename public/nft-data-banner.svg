@@ -37,12 +37,7 @@
   <rect x="974" y="236" width="68" height="68" rx="10" fill="none" stroke="#acc6e9" stroke-width="0.5" stroke-opacity="0.05"/>
   <rect x="1056" y="236" width="68" height="68" rx="10" fill="none" stroke="#acc6e9" stroke-width="0.5" stroke-opacity="0.03"/>
 
-  <!-- Icon (top-left tile accent) -->
-  <rect x="810" y="72" width="68" height="68" rx="10" fill="#acc6e9" opacity="0.2" stroke="#acc6e9" stroke-width="1.5" stroke-opacity="0.5"/>
-  <line x1="844" y1="87" x2="844" y2="123" stroke="#e3ecf9" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="826" y1="105" x2="862" y2="105" stroke="#e3ecf9" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="831" y1="92" x2="857" y2="118" stroke="#e3ecf9" stroke-width="1.5" stroke-linecap="round" opacity="0.45"/>
-  <line x1="857" y1="92" x2="831" y2="118" stroke="#e3ecf9" stroke-width="1.5" stroke-linecap="round" opacity="0.45"/>
+
 
   <!-- Left content block -->
   <!-- Tag line -->
