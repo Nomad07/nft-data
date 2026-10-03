@@ -8,19 +8,13 @@ An OpenSea Agent Tool that provides structured NFT collection and market data to
 
 ## What it does
 
-NFT Data exposes a single read-only tool action, `get_collection_data`, that accepts an OpenSea collection slug and returns structured NFT collection and market data sourced directly from the OpenSea API v2.
-
-It is designed for AI agents that need reliable NFT collection data without implementing OpenSea API access themselves.
+NFT Data is a read-only tool for AI agents. It accepts an OpenSea collection slug and returns structured NFT collection and market data sourced directly from the OpenSea API v2.
 
 The tool is registered on Base through the OpenSea ERC-8257 Tool Registry, while the underlying data layer can serve collections across OpenSea-supported chains.
 
-## Tool action: `get_collection_data`
+**Tool action:** `get_collection_data`
 
-**Endpoint:**
-
-`POST https://www.nftdata.app/api/get-collection-data`
-
-Accepts a JSON body containing an OpenSea collection slug.
+**Endpoint:** `POST https://www.nftdata.app/api/get-collection-data`
 
 ### Request
 
@@ -30,9 +24,7 @@ Accepts a JSON body containing an OpenSea collection slug.
 }
 ```
 
-### Response
-
-The tool returns:
+### Returns
 
 * collection name
 * collection slug
@@ -46,7 +38,7 @@ The tool returns:
 * total supply when available
 * collection creation date when available
 
-### Example
+### Example response
 
 ```json
 {
@@ -82,23 +74,22 @@ The tool returns:
 | `500`       | Server configuration error         |
 | `502`       | Upstream OpenSea API error         |
 
-## ERC-8257 Tool Manifest
+## ERC-8257 Tool Registry
 
-The tool manifest is publicly available at:
+**Tool ID:** 778
+**Network:** Base
+**Chain ID:** 8453
+**Access:** Open / Free
+
+Registry:
+
+`0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1`
+
+The ERC-8257 manifest is available at:
 
 https://www.nftdata.app/.well-known/ai-tool/nft-data.json
 
 The manifest defines the tool name, description, production endpoint, input and output schemas, discovery tags, and creator address.
-
-The manifest is registered in the OpenSea Tool Registry on Base.
-
-### Tool Registry
-
-* **Tool ID:** 778
-* **Network:** Base
-* **Chain ID:** 8453
-* **Registry:** `0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1`
-* **Access:** Open / Free
 
 ## API
 
@@ -108,7 +99,7 @@ The server-side API key is stored as the `OPENSEA_API_KEY` environment variable 
 
 No end-user wallet connection, authentication, signing, trading, or write operation is required.
 
-## Production architecture
+## Architecture
 
 ```text
 AI Agent
@@ -123,22 +114,11 @@ Tool #778
 ERC-8257 Manifest
    │
    ▼
-https://www.nftdata.app/api/get-collection-data
+NFT Data API
    │
    ▼
 OpenSea API v2
-   │
-   ▼
-Structured NFT collection data
 ```
-
-## Manifest discovery
-
-The ERC-8257 manifest can be discovered at:
-
-`GET https://www.nftdata.app/.well-known/ai-tool/nft-data.json`
-
-The manifest is used for tool capability discovery and registry verification.
 
 ## Local development
 
@@ -150,19 +130,13 @@ Install dependencies:
 npm install
 ```
 
-Run the local development server:
+Run the development server:
 
 ```bash
 npm run dev
 ```
 
-The local server runs on:
-
-```text
-http://localhost:3000
-```
-
-Test the tool endpoint:
+Test the API:
 
 ```bash
 curl -X POST http://localhost:3000/api/get-collection-data \
@@ -170,13 +144,13 @@ curl -X POST http://localhost:3000/api/get-collection-data \
   -d '{"collection":"doodles-official"}'
 ```
 
-Test the manifest endpoint:
+Test the manifest:
 
 ```bash
 curl http://localhost:3000/.well-known/ai-tool/nft-data.json
 ```
 
-Type-check the project:
+Run the TypeScript check:
 
 ```bash
 npm run build
@@ -184,7 +158,7 @@ npm run build
 
 ## Environment variables
 
-Create a local `.env` file containing:
+Create a local `.env` file:
 
 ```env
 OPENSEA_API_KEY=your_opensea_api_key
@@ -194,17 +168,13 @@ The OpenSea API key is required by the server and must never be exposed in clien
 
 ## Deployment
 
-The production application is deployed on Vercel with the custom domain:
+The production application is deployed on Vercel.
 
-https://www.nftdata.app/
+**Website:** https://www.nftdata.app/
 
-The public API endpoint is:
+**API:** https://www.nftdata.app/api/get-collection-data
 
-https://www.nftdata.app/api/get-collection-data
-
-The public ERC-8257 manifest is:
-
-https://www.nftdata.app/.well-known/ai-tool/nft-data.json
+**Manifest:** https://www.nftdata.app/.well-known/ai-tool/nft-data.json
 
 ## Project structure
 
