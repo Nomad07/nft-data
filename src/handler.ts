@@ -1,4 +1,4 @@
-import { createToolHandler } from "@opensea/tool-sdk";
+import { createToolHandler, ToolHandlerError } from "@opensea/tool-sdk";
 import { z } from "zod/v4";
 import { manifest } from "./manifest.js";
 import { fetchCollection, fetchCollectionStats, OpenSeaApiError } from "./opensea.js";
@@ -46,25 +46,43 @@ export const toolHandler = createToolHandler({
 
     const { collection: slug } = input;
 
-    const [collectionData, statsData] = await Promise.all([
-      fetchCollection(slug, apiKey),
-      fetchCollectionStats(slug, apiKey),
-    ]);
+    try {
+      const [collectionData, statsData] = await Promise.all([
+        fetchCollection(slug, apiKey),
+        fetchCollectionStats(slug, apiKey),
+      ]);
 
-    const oneDayStat = statsData.intervals.find((i) => i.interval === "one_day");
+      const oneDayStat = statsData.intervals.find((i) => i.interval === "one_day");
 
-    return {
-      name: collectionData.name,
-      slug: collectionData.collection,
-      contracts: collectionData.contracts,
-      floor_price: statsData.total.floor_price,
-      floor_price_currency: statsData.total.floor_price_symbol,
-      one_day_sales: oneDayStat?.sales ?? 0,
-      one_day_volume: oneDayStat?.volume ?? 0,
-      total_sales: statsData.total.sales,
-      total_volume: statsData.total.volume,
-      num_owners: statsData.total.num_owners,
-    };
+      return {
+        name: collectionData.name,
+        slug: collectionData.collection,
+        contracts: collectionData.contracts,
+        floor_price: statsData.total.floor_price,
+        floor_price_currency: statsData.total.floor_price_symbol,
+        one_day_sales: oneDayStat?.sales ?? 0,
+        one_day_volume: oneDayStat?.volume ?? 0,
+        total_sales: statsData.total.sales,
+        total_volume: statsData.total.volume,
+        num_owners: statsData.total.num_owners,
+      };
+    } catch (err) {
+      if (err instanceof OpenSeaApiError) {
+        const status =
+          err.status === 404 ? 404
+          : err.status === 429 ? 429
+          : err.status === 401 || err.status === 403 ? 502
+          : err.status >= 500 ? 502
+          : 400;
+        const message =
+          err.status === 404 ? "Collection not found."
+          : err.status === 429 ? "Rate limit exceeded. Please retry after a short delay."
+          : err.status >= 500 ? "The upstream OpenSea API returned an error. Please try again later."
+          : "Invalid request to the OpenSea API.";
+        throw new ToolHandlerError(status, message);
+      }
+      throw err;
+    }
   },
 });
 
