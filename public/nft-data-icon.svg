@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <rect width="256" height="256" rx="48" fill="#0d1b2f"/>
+
+  <!-- Grid of four data tiles — top-left full, others fading -->
+  <rect x="44" y="44" width="72" height="72" rx="12" fill="#acc6e9"/>
+  <rect x="128" y="44" width="72" height="72" rx="12" fill="#acc6e9" opacity="0.45"/>
+  <rect x="44" y="128" width="72" height="72" rx="12" fill="#acc6e9" opacity="0.45"/>
+  <rect x="128" y="128" width="72" height="72" rx="12" fill="#acc6e9" opacity="0.18"/>
+
+  <!-- Sparkle / data node on top-left tile -->
+  <circle cx="80" cy="80" r="14" fill="#0d1b2f"/>
+  <line x1="80" y1="62" x2="80" y2="98" stroke="#e3ecf9" stroke-width="3" stroke-linecap="round"/>
+  <line x1="62" y1="80" x2="98" y2="80" stroke="#e3ecf9" stroke-width="3" stroke-linecap="round"/>
+  <line x1="69" y1="69" x2="91" y2="91" stroke="#e3ecf9" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+  <line x1="91" y1="69" x2="69" y2="91" stroke="#e3ecf9" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="6" fill="#0d1b2f"/>
+
+  <!-- Four tiles -->
+  <rect x="5" y="5" width="9" height="9" rx="1.5" fill="#acc6e9"/>
+  <rect x="16" y="5" width="9" height="9" rx="1.5" fill="#acc6e9" opacity="0.45"/>
+  <rect x="5" y="16" width="9" height="9" rx="1.5" fill="#acc6e9" opacity="0.45"/>
+  <rect x="16" y="16" width="9" height="9" rx="1.5" fill="#acc6e9" opacity="0.18"/>
+
+  <!-- Data cross on top-left tile -->
+  <line x1="9.5" y1="7" x2="9.5" y2="12" stroke="#e3ecf9" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="7" y1="9.5" x2="12" y2="9.5" stroke="#e3ecf9" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
