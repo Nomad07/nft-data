@@ -322,6 +322,62 @@
       text-pretty: auto;
     }
 
+    /* ── Error state ── */
+    .error-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid rgba(232, 109, 122, 0.3);
+      border-radius: var(--radius);
+    }
+
+    .error-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(232, 109, 122, 0.12);
+      border: 1px solid rgba(232, 109, 122, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .error-state h2 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--danger);
+    }
+
+    .error-state p {
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 360px;
+      text-pretty: auto;
+      line-height: 1.5;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+      min-height: 36px;
+    }
+
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent-hover); }
+    .btn-ghost:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
     /* ── Footer ── */
     footer {
       padding: 24px 20px 32px;
@@ -469,11 +525,18 @@
 (function () {
   'use strict';
 
-  const input   = document.getElementById('slug-input');
-  const btn     = document.getElementById('fetch-btn');
-  const status  = document.getElementById('status-msg');
-  const empty   = document.getElementById('empty-state');
-  const panel   = document.getElementById('data-panel');
+  const input  = document.getElementById('slug-input');
+  const btn    = document.getElementById('fetch-btn');
+  const status = document.getElementById('status-msg');
+  const empty  = document.getElementById('empty-state');
+  const panel  = document.getElementById('data-panel');
+
+  // ── State constants ──────────────────────────────────────────────────────
+  // IDLE    : initial — empty state visible, panel hidden
+  // LOADING : request in flight — both hidden, button spinner
+  // SUCCESS : data rendered — panel visible, empty hidden
+  // ERROR   : request failed — error card in panel, empty hidden
+  // ────────────────────────────────────────────────────────────────────────
 
   function setStatus(msg, type) {
     status.textContent = msg;
@@ -484,12 +547,32 @@
     btn.disabled = busy;
     input.disabled = busy;
     btn.innerHTML = busy
-      ? '<span class="spinner" aria-hidden="true"></span>Loading…'
+      ? '<span class="spinner" aria-hidden="true"></span>Loading\u2026'
       : 'Get collection data';
   }
 
+  function showEmpty() {
+    empty.hidden = false;
+    panel.hidden = true;
+    panel.innerHTML = '';
+  }
+
+  function showPanel() {
+    empty.hidden = true;
+    panel.hidden = false;
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function fmt(val) {
-    if (val === null || val === undefined) return '—';
+    if (val === null || val === undefined) return '\u2014';
     if (typeof val === 'number') {
       if (Number.isInteger(val)) return val.toLocaleString('en-US');
       return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
@@ -510,24 +593,46 @@
     ].join('');
   }
 
-  function escHtml(s) {
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+  function renderError(msg) {
+    panel.innerHTML = [
+      '<div class="error-state">',
+      '  <div class="error-icon">',
+      '    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">',
+      '      <circle cx="10" cy="10" r="8" stroke="#e86d7a" stroke-width="1.5"/>',
+      '      <path d="M10 6v5" stroke="#e86d7a" stroke-width="1.5" stroke-linecap="round"/>',
+      '      <circle cx="10" cy="14" r="0.75" fill="#e86d7a"/>',
+      '    </svg>',
+      '  </div>',
+      '  <h2>Request failed</h2>',
+      '  <p>' + escHtml(msg) + '</p>',
+      '  <button class="btn-ghost" id="try-again-btn" type="button">Try another collection</button>',
+      '</div>',
+    ].join('');
+
+    showPanel();
+
+    var tryAgainBtn = document.getElementById('try-again-btn');
+    if (tryAgainBtn) {
+      tryAgainBtn.addEventListener('click', function () {
+        panel.hidden = true;
+        panel.innerHTML = '';
+        setStatus('');
+        input.disabled = false;
+        input.focus();
+        input.select();
+      });
+    }
   }
 
   function renderData(d) {
-    const contracts = Array.isArray(d.contracts) && d.contracts.length > 0 ? d.contracts : [];
+    var contracts = Array.isArray(d.contracts) && d.contracts.length > 0 ? d.contracts : [];
 
-    const contractsHtml = contracts.map(function (c) {
+    var contractsHtml = contracts.map(function (c) {
       return [
         '<div class="contract-card">',
         '  <div class="contract-label">Contract</div>',
-        '  <div class="contract-address mono">' + escHtml(c.address || '—') + '</div>',
-        '  <div class="contract-chain">' + escHtml(c.chain || '—') + '</div>',
+        '  <div class="contract-address mono">' + escHtml(c.address || '\u2014') + '</div>',
+        '  <div class="contract-chain">' + escHtml(c.chain || '\u2014') + '</div>',
         '</div>',
       ].join('');
     }).join('');
@@ -535,13 +640,11 @@
     panel.innerHTML = [
       '<div class="results">',
 
-      // Collection name + slug
       '<div class="collection-header">',
-      '  <div class="collection-name display">' + escHtml(d.name || '—') + '</div>',
-      '  <div class="collection-slug mono">' + escHtml(d.slug || '—') + '</div>',
+      '  <div class="collection-name display">' + escHtml(d.name || '\u2014') + '</div>',
+      '  <div class="collection-slug mono">' + escHtml(d.slug || '\u2014') + '</div>',
       '</div>',
 
-      // Market stats
       '<div class="section-title">Market</div>',
       '<div class="stat-grid">',
       renderStat('Floor price', d.floor_price, d.floor_price_currency),
@@ -552,15 +655,13 @@
       renderStat('Total volume', d.total_volume, d.floor_price_currency || null),
       '</div>',
 
-      // Contracts
       contracts.length > 0 ? '<div class="section-title">Contract</div>' : '',
       contractsHtml,
 
       '</div>',
     ].join('');
 
-    empty.hidden = true;
-    panel.hidden = false;
+    showPanel();
   }
 
   async function fetchCollection(slug) {
@@ -570,39 +671,41 @@
       return;
     }
 
+    // LOADING state: hide everything, show spinner
     setBusy(true);
     setStatus('', '');
     empty.hidden = true;
     panel.hidden = true;
+    panel.innerHTML = '';
 
     try {
-      const res = await fetch('/api/get-collection-data', {
+      var res = await fetch('/api/get-collection-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ collection: slug.trim() }),
       });
 
-      const json = await res.json().catch(function () { return null; });
+      var json = await res.json().catch(function () { return null; });
 
       if (!res.ok) {
-        const msg = (json && json.error) ? json.error : 'Error ' + res.status;
-        setStatus(msg, 'error');
-        empty.hidden = false;
+        // ERROR state: show error card in panel, empty stays hidden
+        var msg = (json && json.error) ? json.error : 'Request failed (HTTP ' + res.status + ').';
+        renderError(msg);
         return;
       }
 
       if (!json || typeof json !== 'object') {
-        setStatus('Unexpected response from the API.', 'error');
-        empty.hidden = false;
+        renderError('Unexpected response from the API. Please try again.');
         return;
       }
 
+      // SUCCESS state: show data, empty stays hidden
       setStatus('');
       renderData(json);
 
     } catch (err) {
-      setStatus('Network error. Check your connection and try again.', 'error');
-      empty.hidden = false;
+      // ERROR state: network failure
+      renderError('Network error. Check your connection and try again.');
     } finally {
       setBusy(false);
     }
@@ -616,7 +719,6 @@
     if (e.key === 'Enter') fetchCollection(input.value);
   });
 
-  // Focus the input on load
   input.focus();
 })();
 </script>
