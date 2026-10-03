@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NFT Data — OpenSea collection intelligence for AI agents</title>
+  <meta name="description" content="Query any OpenSea NFT collection and get structured market data instantly. An ERC-8257 AI agent tool." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1b2f;
+      --bg-gradient: linear-gradient(180deg, #0d1b2f 0%, #0d1b2f 58%, #122d45 100%);
+      --surface: rgba(255, 255, 255, 0.07);
+      --surface-strong: rgba(255, 255, 255, 0.11);
+      --surface-muted: #1f2f44;
+      --ink: #f9faf3;
+      --ink-2: #e3ecf9;
+      --muted: #cbd5e1;
+      --subtle: #94a3b8;
+      --border: rgba(255, 255, 255, 0.12);
+      --border-strong: rgba(203, 219, 242, 0.55);
+      --accent: #acc6e9;
+      --accent-hover: #cbdbf2;
+      --success: #8dd89f;
+      --danger: #e86d7a;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--ink);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+    .display { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.03em; }
+    .mono { font-family: 'JetBrains Mono', Menlo, monospace; }
+    .tabular { font-variant-numeric: tabular-nums; }
+
+    /* ── Layout ── */
+    .page {
+      flex: 1;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 20px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* ── Header ── */
+    .header { display: flex; flex-direction: column; gap: 6px; }
+
+    .header-wordmark {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .wordmark-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--surface-strong);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .wordmark-icon svg { display: block; }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: var(--subtle);
+      line-height: 1.5;
+      text-pretty: auto;
+    }
+
+    /* ── Search card ── */
+    .search-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .slug-input {
+      flex: 1;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--ink);
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 14px;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      min-width: 0;
+    }
+
+    .slug-input::placeholder { color: var(--subtle); }
+
+    .slug-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(172, 198, 233, 0.15);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0d1b2f;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 11px 20px;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      white-space: nowrap;
+      min-height: 44px;
+      flex-shrink: 0;
+    }
+
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+
+    .btn-primary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* ── Status strip ── */
+    .status-strip {
+      font-size: 13px;
+      color: var(--subtle);
+      min-height: 20px;
+      padding-top: 2px;
+    }
+
+    .status-strip.error { color: var(--danger); }
+    .status-strip.loading { color: var(--muted); }
+
+    /* ── Results ── */
+    .results { display: flex; flex-direction: column; gap: 16px; }
+
+    .collection-header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .collection-name {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .collection-slug {
+      font-size: 13px;
+      color: var(--subtle);
+      font-family: 'JetBrains Mono', Menlo, monospace;
+    }
+
+    /* ── Stat grid ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    @media (min-width: 540px) {
+      .stat-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
+    .stat-value.display { font-family: 'Space Grotesk', sans-serif; }
+
+    .stat-currency {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--subtle);
+      margin-top: 2px;
+    }
+
+    /* ── Contract card ── */
+    .contract-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .contract-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .contract-address {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 13px;
+      color: var(--ink-2);
+      word-break: break-all;
+      line-height: 1.5;
+    }
+
+    .contract-chain {
+      font-size: 12px;
+      color: var(--subtle);
+      font-weight: 500;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 48px 20px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .empty-state h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      color: var(--subtle);
+      max-width: 320px;
+      text-pretty: auto;
+    }
+
+    /* ── Footer ── */
+    footer {
+      padding: 24px 20px 32px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+
+    .footer-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 16px;
+      justify-content: center;
+    }
+
+    .footer-links a {
+      font-size: 12px;
+      color: var(--subtle);
+      transition: color 0.15s;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* ── Loading spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(13, 27, 47, 0.25);
+      border-top-color: #0d1b2f;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    /* ── Divider ── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<main class="page">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-wordmark">
+      <div class="wordmark-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <rect x="2" y="2" width="6" height="6" rx="1.5" fill="#acc6e9"/>
+          <rect x="10" y="2" width="6" height="6" rx="1.5" fill="#acc6e9" opacity="0.5"/>
+          <rect x="2" y="10" width="6" height="6" rx="1.5" fill="#acc6e9" opacity="0.5"/>
+          <rect x="10" y="10" width="6" height="6" rx="1.5" fill="#acc6e9" opacity="0.3"/>
+        </svg>
+      </div>
+      <h1 class="display">NFT Data</h1>
+    </div>
+    <p>OpenSea collection intelligence for AI agents</p>
+  </header>
+
+  <!-- Search -->
+  <section aria-label="Collection lookup">
+    <div class="search-card">
+      <label class="field-label" for="slug-input">Collection slug</label>
+      <div class="input-row">
+        <input
+          id="slug-input"
+          class="slug-input"
+          type="text"
+          placeholder="doodles-official"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="none"
+          spellcheck="false"
+          aria-describedby="status-msg"
+        />
+        <button
+          id="fetch-btn"
+          class="btn-primary"
+          type="button"
+          aria-live="polite"
+        >
+          Get collection data
+        </button>
+      </div>
+      <div id="status-msg" class="status-strip" aria-live="polite" aria-atomic="true"></div>
+    </div>
+  </section>
+
+  <!-- Results / Empty state -->
+  <section id="results-area" aria-label="Collection data" aria-live="polite">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+          <circle cx="10" cy="10" r="7" stroke="#94a3b8" stroke-width="1.5"/>
+          <path d="M15.5 15.5L20 20" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h2>No collection loaded</h2>
+      <p>Enter an OpenSea collection slug above to retrieve live market data.</p>
+    </div>
+
+    <div id="data-panel" hidden>
+      <!-- populated by JS -->
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span class="footer-badge">AI Agent Tool &nbsp;·&nbsp; ERC-8257 &nbsp;·&nbsp; Base &nbsp;·&nbsp; Tool #778</span>
+  <nav class="footer-links" aria-label="Tool links">
+    <a href="https://opensea.io/tools/erc8257/base/778" target="_blank" rel="noopener noreferrer">OpenSea Tool #778</a>
+    <a href="/api/get-collection-data" target="_blank" rel="noopener noreferrer">API</a>
+    <a href="/.well-known/ai-tool/nft-data.json" target="_blank" rel="noopener noreferrer">Manifest</a>
+  </nav>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  const input   = document.getElementById('slug-input');
+  const btn     = document.getElementById('fetch-btn');
+  const status  = document.getElementById('status-msg');
+  const empty   = document.getElementById('empty-state');
+  const panel   = document.getElementById('data-panel');
+
+  function setStatus(msg, type) {
+    status.textContent = msg;
+    status.className = 'status-strip' + (type ? ' ' + type : '');
+  }
+
+  function setBusy(busy) {
+    btn.disabled = busy;
+    input.disabled = busy;
+    btn.innerHTML = busy
+      ? '<span class="spinner" aria-hidden="true"></span>Loading…'
+      : 'Get collection data';
+  }
+
+  function fmt(val) {
+    if (val === null || val === undefined) return '—';
+    if (typeof val === 'number') {
+      if (Number.isInteger(val)) return val.toLocaleString('en-US');
+      return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    }
+    return String(val);
+  }
+
+  function renderStat(label, value, currency) {
+    const currencyHtml = currency
+      ? '<div class="stat-currency">' + escHtml(String(currency)) + '</div>'
+      : '';
+    return [
+      '<div class="stat-card">',
+      '  <div class="stat-label">' + escHtml(label) + '</div>',
+      '  <div class="stat-value display tabular">' + escHtml(fmt(value)) + '</div>',
+      currencyHtml,
+      '</div>',
+    ].join('');
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function renderData(d) {
+    const contracts = Array.isArray(d.contracts) && d.contracts.length > 0 ? d.contracts : [];
+
+    const contractsHtml = contracts.map(function (c) {
+      return [
+        '<div class="contract-card">',
+        '  <div class="contract-label">Contract</div>',
+        '  <div class="contract-address mono">' + escHtml(c.address || '—') + '</div>',
+        '  <div class="contract-chain">' + escHtml(c.chain || '—') + '</div>',
+        '</div>',
+      ].join('');
+    }).join('');
+
+    panel.innerHTML = [
+      '<div class="results">',
+
+      // Collection name + slug
+      '<div class="collection-header">',
+      '  <div class="collection-name display">' + escHtml(d.name || '—') + '</div>',
+      '  <div class="collection-slug mono">' + escHtml(d.slug || '—') + '</div>',
+      '</div>',
+
+      // Market stats
+      '<div class="section-title">Market</div>',
+      '<div class="stat-grid">',
+      renderStat('Floor price', d.floor_price, d.floor_price_currency),
+      renderStat('Owners', d.num_owners, null),
+      renderStat('24h sales', d.one_day_sales, null),
+      renderStat('24h volume', d.one_day_volume, d.floor_price_currency || null),
+      renderStat('Total sales', d.total_sales, null),
+      renderStat('Total volume', d.total_volume, d.floor_price_currency || null),
+      '</div>',
+
+      // Contracts
+      contracts.length > 0 ? '<div class="section-title">Contract</div>' : '',
+      contractsHtml,
+
+      '</div>',
+    ].join('');
+
+    empty.hidden = true;
+    panel.hidden = false;
+  }
+
+  async function fetchCollection(slug) {
+    if (!slug.trim()) {
+      setStatus('Enter a collection slug.', 'error');
+      input.focus();
+      return;
+    }
+
+    setBusy(true);
+    setStatus('', '');
+    empty.hidden = true;
+    panel.hidden = true;
+
+    try {
+      const res = await fetch('/api/get-collection-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collection: slug.trim() }),
+      });
+
+      const json = await res.json().catch(function () { return null; });
+
+      if (!res.ok) {
+        const msg = (json && json.error) ? json.error : 'Error ' + res.status;
+        setStatus(msg, 'error');
+        empty.hidden = false;
+        return;
+      }
+
+      if (!json || typeof json !== 'object') {
+        setStatus('Unexpected response from the API.', 'error');
+        empty.hidden = false;
+        return;
+      }
+
+      setStatus('');
+      renderData(json);
+
+    } catch (err) {
+      setStatus('Network error. Check your connection and try again.', 'error');
+      empty.hidden = false;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  btn.addEventListener('click', function () {
+    fetchCollection(input.value);
+  });
+
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') fetchCollection(input.value);
+  });
+
+  // Focus the input on load
+  input.focus();
+})();
+</script>
+
+</body>
+</html>
