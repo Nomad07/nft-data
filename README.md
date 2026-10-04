@@ -16,7 +16,7 @@ No end-user wallet connection is required. NFT Data performs no purchases, sales
 
 ## Multi-chain support
 
-NFT Data is not hardcoded to a single blockchain. The `contracts` field in every response includes the blockchain identifier for each collection contract, enabling agents to identify and reason about collections on any supported network.
+NFT Data is not hardcoded to a single blockchain. The `contracts` field in every response includes the blockchain identifier for each collection contract, enabling agents to identify the blockchain associated with each collection contract.
 
 NFT Data uses the OpenSea API v2, which provides NFT and marketplace data across 30 chains.
 
