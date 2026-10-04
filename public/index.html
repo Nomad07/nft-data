@@ -194,8 +194,50 @@
 
     .collection-header {
       display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .collection-header-text {
+      display: flex;
       flex-direction: column;
       gap: 4px;
+      min-width: 0;
+    }
+
+    .copy-link-btn {
+      flex-shrink: 0;
+      align-self: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--subtle);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 5px 12px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+
+    .copy-link-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--surface-strong);
+    }
+
+    .copy-link-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .copy-link-btn.copied {
+      color: var(--success);
+      border-color: var(--success);
     }
 
     .collection-name {
@@ -701,8 +743,11 @@
       '<div class="results">',
 
       '<div class="collection-header">',
-      '  <div class="collection-name display">' + escHtml(d.name || '\u2014') + '</div>',
-      '  <div class="collection-slug mono">' + escHtml(d.slug || '\u2014') + '</div>',
+      '  <div class="collection-header-text">',
+      '    <div class="collection-name display">' + escHtml(d.name || '\u2014') + '</div>',
+      '    <div class="collection-slug mono">' + escHtml(d.slug || '\u2014') + '</div>',
+      '  </div>',
+      '  <button class="copy-link-btn" id="copy-link-btn" type="button">Copy Link</button>',
       '</div>',
 
       '<div class="section-title">Market</div>',
@@ -730,7 +775,46 @@
     showPanel();
   }
 
-  async function fetchCollection(slug) {
+  var currentSlug = '';
+
+  function getDeepLink(slug) {
+    return 'https://nftdata.app/?collection=' + encodeURIComponent(slug);
+  }
+
+  function attachCopyLink() {
+    var copyBtn = document.getElementById('copy-link-btn');
+    if (!copyBtn) return;
+    copyBtn.addEventListener('click', function () {
+      if (!currentSlug) return;
+      var url = getDeepLink(currentSlug);
+      navigator.clipboard.writeText(url).then(function () {
+        copyBtn.textContent = 'Link copied \u2713';
+        copyBtn.classList.add('copied');
+        setTimeout(function () {
+          copyBtn.textContent = 'Copy Link';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      }).catch(function () {
+        // Fallback for browsers without clipboard API
+        var ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        copyBtn.textContent = 'Link copied \u2713';
+        copyBtn.classList.add('copied');
+        setTimeout(function () {
+          copyBtn.textContent = 'Copy Link';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      });
+    });
+  }
+
+  async function fetchCollection(slug, pushUrl) {
     if (!slug.trim()) {
       setStatus('Enter a collection slug.', 'error');
       input.focus();
@@ -779,7 +863,10 @@
 
       // SUCCESS state: show data, empty stays hidden
       setStatus('');
+      currentSlug = slug.trim();
+      history.pushState(null, '', '?collection=' + encodeURIComponent(currentSlug));
       renderData(json);
+      attachCopyLink();
 
     } catch (err) {
       // ERROR state: network failure
@@ -800,7 +887,15 @@
     if (e.key === 'Enter') fetchCollection(input.value);
   });
 
-  input.focus();
+  // Deep-link support: auto-load collection from ?collection= query param
+  var params = new URLSearchParams(window.location.search);
+  var deepSlug = params.get('collection');
+  if (deepSlug && deepSlug.trim()) {
+    input.value = deepSlug.trim();
+    fetchCollection(deepSlug.trim());
+  } else {
+    input.focus();
+  }
 })();
 </script>
 
