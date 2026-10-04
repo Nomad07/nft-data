@@ -52,23 +52,23 @@ export const manifest = defineManifest({
       },
       one_day_volume: {
         type: "number",
-        description: "Trading volume in the last 24 hours (in ETH).",
+        description: "Trading volume in the last 24 hours.",
       },
       seven_day_sales: {
-        type: "number",
-        description: "Number of sales in the last 7 days.",
+        type: ["number", "null"],
+        description: "Number of sales in the last 7 days. Null if not reported.",
       },
       seven_day_volume: {
-        type: "number",
-        description: "Trading volume in the last 7 days (in ETH).",
+        type: ["number", "null"],
+        description: "Trading volume in the last 7 days. Null if not reported.",
       },
       thirty_day_sales: {
-        type: "number",
-        description: "Number of sales in the last 30 days.",
+        type: ["number", "null"],
+        description: "Number of sales in the last 30 days. Null if not reported.",
       },
       thirty_day_volume: {
-        type: "number",
-        description: "Trading volume in the last 30 days (in ETH).",
+        type: ["number", "null"],
+        description: "Trading volume in the last 30 days. Null if not reported.",
       },
       total_sales: {
         type: "number",
@@ -76,18 +76,18 @@ export const manifest = defineManifest({
       },
       total_volume: {
         type: "number",
-        description: "Total lifetime trading volume (in ETH).",
+        description: "Total lifetime trading volume.",
       },
       num_owners: {
         type: "number",
         description: "Current number of unique owners.",
       },
       total_supply: {
-        type: "number",
+        type: ["number", "null"],
         description: "Total number of NFTs in the collection. Null if not reported.",
       },
       created_date: {
-        type: "string",
+        type: ["string", "null"],
         description: "ISO 8601 date when the collection was created. Null if not reported.",
       },
     },
@@ -95,6 +95,5 @@ export const manifest = defineManifest({
   tags: ["nft", "trading"],
   image: "https://www.nftdata.app/nft-data-icon.svg",
   featuredImage: "https://www.nftdata.app/nft-data-banner.svg",
-  // Replace with the deploying wallet address before onchain registration.
   creatorAddress: "0x344143199642e87320785823c20c2df107d17534",
 });
