@@ -1,12 +1,5 @@
 import { defineManifest } from "@opensea/tool-sdk";
 
-/**
- * ERC-8257 Tool Manifest for NFT Data.
- *
- * The endpoint field must be updated to the actual deployed origin before
- * onchain registration. The creatorAddress must be replaced with the wallet
- * address that will call registerTool on the ToolRegistry contract.
- */
 export const manifest = defineManifest({
   type: "https://ercs.ethereum.org/ERCS/erc-8257#tool-manifest-v1",
   name: "NFT Data",

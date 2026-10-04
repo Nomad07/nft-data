@@ -42,7 +42,9 @@ export interface OpenSeaCollectionStats {
 export class OpenSeaApiError extends Error {
   constructor(
     public readonly status: number,
-    message: string
+    message: string,
+    /** Value of the upstream Retry-After header, if present. */
+    public readonly retryAfter?: string
   ) {
     super(message);
     this.name = "OpenSeaApiError";
@@ -54,6 +56,58 @@ function buildHeaders(apiKey: string): HeadersInit {
     "x-api-key": apiKey,
     Accept: "application/json",
   };
+}
+
+// ---------------------------------------------------------------------------
+// In-memory cache
+//
+// Vercel Edge functions may run in many isolated worker instances, so this
+// cache is best-effort: it avoids redundant upstream calls within a single
+// warm worker instance but does not guarantee deduplication across instances.
+// TTL is 60 seconds.
+// ---------------------------------------------------------------------------
+
+interface CacheEntry {
+  data: [OpenSeaCollection, OpenSeaCollectionStats];
+  expiresAt: number;
+}
+
+const cache = new Map<string, CacheEntry>();
+const CACHE_TTL_MS = 60_000;
+
+function getCached(slug: string): [OpenSeaCollection, OpenSeaCollectionStats] | undefined {
+  const entry = cache.get(slug);
+  if (!entry) return undefined;
+  if (Date.now() > entry.expiresAt) {
+    cache.delete(slug);
+    return undefined;
+  }
+  return entry.data;
+}
+
+function setCached(slug: string, data: [OpenSeaCollection, OpenSeaCollectionStats]): void {
+  cache.set(slug, { data, expiresAt: Date.now() + CACHE_TTL_MS });
+}
+
+/**
+ * Fetch collection metadata and stats for the given slug.
+ * Results are cached in memory for 60 seconds per worker instance.
+ * Throws OpenSeaApiError on non-2xx HTTP status.
+ */
+export async function fetchCollectionData(
+  slug: string,
+  apiKey: string
+): Promise<[OpenSeaCollection, OpenSeaCollectionStats]> {
+  const cached = getCached(slug);
+  if (cached) return cached;
+
+  const [collectionData, statsData] = await Promise.all([
+    fetchCollection(slug, apiKey),
+    fetchCollectionStats(slug, apiKey),
+  ]);
+
+  setCached(slug, [collectionData, statsData]);
+  return [collectionData, statsData];
 }
 
 /**
@@ -68,8 +122,13 @@ export async function fetchCollection(
   const res = await fetch(url, { headers: buildHeaders(apiKey) });
 
   if (!res.ok) {
+    const retryAfter = res.headers.get("Retry-After") ?? undefined;
     const body = await res.text().catch(() => "");
-    throw new OpenSeaApiError(res.status, `OpenSea collection fetch failed (${res.status}): ${body}`);
+    throw new OpenSeaApiError(
+      res.status,
+      `OpenSea collection fetch failed (${res.status}): ${body}`,
+      retryAfter
+    );
   }
 
   const data = (await res.json()) as unknown;
@@ -98,8 +157,13 @@ export async function fetchCollectionStats(
   const res = await fetch(url, { headers: buildHeaders(apiKey) });
 
   if (!res.ok) {
+    const retryAfter = res.headers.get("Retry-After") ?? undefined;
     const body = await res.text().catch(() => "");
-    throw new OpenSeaApiError(res.status, `OpenSea stats fetch failed (${res.status}): ${body}`);
+    throw new OpenSeaApiError(
+      res.status,
+      `OpenSea stats fetch failed (${res.status}): ${body}`,
+      retryAfter
+    );
   }
 
   const data = (await res.json()) as unknown;

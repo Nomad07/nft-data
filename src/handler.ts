@@ -1,7 +1,7 @@
 import { createToolHandler, ToolHandlerError } from "@opensea/tool-sdk";
 import { z } from "zod/v4";
 import { manifest } from "./manifest.js";
-import { fetchCollection, fetchCollectionStats, OpenSeaApiError } from "./opensea.js";
+import { fetchCollectionData, OpenSeaApiError } from "./opensea.js";
 
 const InputSchema = z.object({
   collection: z
@@ -53,10 +53,7 @@ export const toolHandler = createToolHandler({
     const { collection: slug } = input;
 
     try {
-      const [collectionData, statsData] = await Promise.all([
-        fetchCollection(slug, apiKey),
-        fetchCollectionStats(slug, apiKey),
-      ]);
+      const [collectionData, statsData] = await fetchCollectionData(slug, apiKey);
 
       const oneDayStat    = statsData.intervals.find((i) => i.interval === "one_day");
       const sevenDayStat  = statsData.intervals.find((i) => i.interval === "seven_day");
@@ -90,9 +87,13 @@ export const toolHandler = createToolHandler({
           : 400;
         const message =
           err.status === 404 ? "Collection not found."
-          : err.status === 429 ? "Rate limit exceeded. Please retry after a short delay."
+          : err.status === 429 ? "Rate limit exceeded."
           : err.status >= 500 ? "The upstream OpenSea API returned an error. Please try again later."
           : "Invalid request to the OpenSea API.";
+        // ToolHandlerError does not support custom headers, so 429 with
+        // Retry-After is handled by the outer handleToolError fallback.
+        // Re-throw the original OpenSeaApiError so Retry-After is preserved.
+        if (err.status === 429) throw err;
         throw new ToolHandlerError(status, message);
       }
       throw err;
@@ -121,15 +122,17 @@ export function handleToolError(err: unknown): Response {
       err.status === 404
         ? "Collection not found."
         : err.status === 429
-          ? "Rate limit exceeded. Please retry after a short delay."
+          ? "Rate limit exceeded."
           : err.status >= 500
             ? "The upstream OpenSea API returned an error. Please try again later."
             : "Invalid request to the OpenSea API.";
 
-    return new Response(JSON.stringify({ error: message }), {
-      status,
-      headers: { "Content-Type": "application/json" },
-    });
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (err.status === 429 && err.retryAfter) {
+      headers["Retry-After"] = err.retryAfter;
+    }
+
+    return new Response(JSON.stringify({ error: message }), { status, headers });
   }
 
   if (err instanceof z.ZodError) {
