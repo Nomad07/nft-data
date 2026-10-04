@@ -88,6 +88,8 @@
     }
 
     .wordmark-icon svg { display: block; }
+    a.wordmark-icon { color: inherit; text-decoration: none; }
+    a.wordmark-icon:hover { text-decoration: none; opacity: 0.8; }
 
     .header h1 {
       font-size: 22px;
@@ -538,14 +540,14 @@
   <!-- Header -->
   <header class="header">
     <div class="header-wordmark">
-      <div class="wordmark-icon">
+      <a class="wordmark-icon" href="https://nftdata.app/" aria-label="Home" title="Home">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
           <rect x="2" y="2" width="6" height="6" rx="1.5" fill="#acc6e9"/>
           <rect x="10" y="2" width="6" height="6" rx="1.5" fill="#acc6e9" opacity="0.5"/>
           <rect x="2" y="10" width="6" height="6" rx="1.5" fill="#acc6e9" opacity="0.5"/>
           <rect x="10" y="10" width="6" height="6" rx="1.5" fill="#acc6e9" opacity="0.3"/>
         </svg>
-      </div>
+      </a>
       <h1 class="display">NFT Data</h1>
     </div>
     <p>OpenSea collection intelligence for AI agents</p>
