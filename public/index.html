@@ -147,6 +147,14 @@
 
     .slug-input::placeholder { color: var(--subtle); }
 
+    .try-example {
+      font-size: 12px;
+      color: var(--subtle);
+      margin-top: 8px;
+    }
+
+    .try-example a { color: var(--accent); }
+
     .slug-input:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(172, 198, 233, 0.15);
@@ -562,7 +570,7 @@
           id="slug-input"
           class="slug-input"
           type="text"
-          placeholder="doodles-official"
+          placeholder="azuki"
           autocomplete="off"
           autocorrect="off"
           autocapitalize="none"
@@ -579,6 +587,7 @@
         </button>
       </div>
       <div id="status-msg" class="status-strip" aria-live="polite" aria-atomic="true"></div>
+      <p class="try-example">Try: <a href="https://nftdata.app/?collection=pudgypenguins">Pudgy Penguins</a></p>
     </div>
   </section>
 
