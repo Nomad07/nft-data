@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "resources": [
+    "https://www.nftdata.app/api/get-collection-data"
+  ]
+}
