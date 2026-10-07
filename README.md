@@ -120,7 +120,7 @@ The OpenSea API supports **30 networks**. The table below lists 15 production-te
 | Robinhood Chain| `rare-friends-genesis` | `0x116eaa62241751e0c98da43d458600c6c17cd361`   |
 | HyperEVM       | `hypurr-hyperevm`      | `0x9125e2d6827a00b0f8330d6ef7bef07730bac685`   |
 | HyperEVM       | `hypio`                | `0x63eb9d77d083ca10c304e28d5191321977fd0bfb`   |
-| Arc            | `akarii`               | `0x643098f125e765081fec0b67384bfe5ca498f24a`   |
+| Arc            | `akarii`               | `0xbea22653119f73716905919708a612332bf98e3f`   |
 | Ronin          | `axie-land`            | `0x8c811e3c958e190f5ec15fb376533a3398620500`   |
 | Ronin          | `moki-collection`      | `0xabbf01d95346368d2d85995b28880f9c4557d7b0`   |
 | ApeChain       | `gimboznft`            | `0x81c9ce55e8214fd0f5181fd3d38f52fd8c33ec38`   |
