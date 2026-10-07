@@ -872,7 +872,7 @@
     panel.innerHTML = '';
 
     try {
-      var res = await fetch('/api/get-collection-data', {
+      var res = await fetch('/api/collect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ collection: slug.trim() }),

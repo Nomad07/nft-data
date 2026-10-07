@@ -1,4 +1,4 @@
-import { createToolHandler, ToolHandlerError } from "@opensea/tool-sdk";
+import { createToolHandler, payaiX402Gate, ToolHandlerError } from "@opensea/tool-sdk";
 import { z } from "zod/v4";
 import { manifest } from "./manifest.js";
 import { fetchCollectionData, OpenSeaApiError } from "./opensea.js";
@@ -43,70 +43,99 @@ const OutputSchema = z.object({
 
 export type CollectionDataOutput = z.infer<typeof OutputSchema>;
 
-export const toolHandler = createToolHandler({
+/**
+ * Shared handler function — contains all collection-data business logic.
+ * Used by both the paid and free createToolHandler instances below.
+ */
+const collectionDataHandler = async (
+  input: { collection: string },
+) => {
+  const apiKey = process.env.OPENSEA_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENSEA_API_KEY environment variable is not configured.");
+  }
+
+  const { collection: slug } = input;
+
+  try {
+    const [collectionData, statsData] = await fetchCollectionData(slug, apiKey);
+
+    const oneDayStat    = statsData.intervals.find((i) => i.interval === "one_day");
+    const sevenDayStat  = statsData.intervals.find((i) => i.interval === "seven_day");
+    const thirtyDayStat = statsData.intervals.find((i) => i.interval === "thirty_day");
+
+    return {
+      name: collectionData.name,
+      slug: collectionData.collection,
+      contracts: collectionData.contracts,
+      floor_price: statsData.total.floor_price,
+      floor_price_currency: statsData.total.floor_price_symbol,
+      one_day_sales: oneDayStat?.sales ?? 0,
+      one_day_volume: oneDayStat?.volume ?? 0,
+      seven_day_sales:  sevenDayStat  ? sevenDayStat.sales   : null,
+      seven_day_volume: sevenDayStat  ? sevenDayStat.volume  : null,
+      thirty_day_sales:  thirtyDayStat ? thirtyDayStat.sales  : null,
+      thirty_day_volume: thirtyDayStat ? thirtyDayStat.volume : null,
+      total_sales: statsData.total.sales,
+      total_volume: statsData.total.volume,
+      num_owners: statsData.total.num_owners,
+      total_supply:  collectionData.total_supply  ?? null,
+      created_date:  collectionData.created_date  ?? null,
+      one_day_volume_currency:    oneDayStat?.volume_symbol    ?? null,
+      seven_day_volume_currency:  sevenDayStat?.volume_symbol  ?? null,
+      thirty_day_volume_currency: thirtyDayStat?.volume_symbol ?? null,
+      total_volume_currency:      statsData.total.volume_symbol ?? null,
+    };
+  } catch (err) {
+    if (err instanceof OpenSeaApiError) {
+      const status =
+        err.status === 404 ? 404
+        : err.status === 429 ? 429
+        : err.status === 401 || err.status === 403 ? 502
+        : err.status >= 500 ? 502
+        : 400;
+      const message =
+        err.status === 404 ? "Collection not found."
+        : err.status === 429 ? "Rate limit exceeded."
+        : err.status >= 500 ? "The upstream OpenSea API returned an error. Please try again later."
+        : "Invalid request to the OpenSea API.";
+      if (err.status === 429) throw err;
+      throw new ToolHandlerError(status, message);
+    }
+    throw err;
+  }
+};
+
+const handlerConfig = {
   manifest,
   inputSchema: InputSchema,
   outputSchema: OutputSchema,
+  handler: collectionDataHandler,
+};
+
+/**
+ * Paid handler — used by /api/get-collection-data (Tool #778).
+ * Requires x402 payment (0.01 USDC on Base) via PayAI facilitator.
+ */
+export const toolHandler = createToolHandler({
+  ...handlerConfig,
+  gates: [
+    payaiX402Gate({
+      recipient: "0x344143199642e87320785823c20c2df107d17534",
+      amountUsdc: "0.01",
+      network: "base",
+      description: "NFT Data — get_collection_data (0.01 USDC)",
+    }),
+  ],
+});
+
+/**
+ * Free handler — used by /api/collect (browser web UI).
+ * No payment required. Rate-limited at the edge for scraping resistance.
+ */
+export const toolHandlerFree = createToolHandler({
+  ...handlerConfig,
   gates: [],
-  handler: async (input) => {
-    const apiKey = process.env.OPENSEA_API_KEY;
-    if (!apiKey) {
-      throw new Error("OPENSEA_API_KEY environment variable is not configured.");
-    }
-
-    const { collection: slug } = input;
-
-    try {
-      const [collectionData, statsData] = await fetchCollectionData(slug, apiKey);
-
-      const oneDayStat    = statsData.intervals.find((i) => i.interval === "one_day");
-      const sevenDayStat  = statsData.intervals.find((i) => i.interval === "seven_day");
-      const thirtyDayStat = statsData.intervals.find((i) => i.interval === "thirty_day");
-
-      return {
-        name: collectionData.name,
-        slug: collectionData.collection,
-        contracts: collectionData.contracts,
-        floor_price: statsData.total.floor_price,
-        floor_price_currency: statsData.total.floor_price_symbol,
-        one_day_sales: oneDayStat?.sales ?? 0,
-        one_day_volume: oneDayStat?.volume ?? 0,
-        seven_day_sales:  sevenDayStat  ? sevenDayStat.sales   : null,
-        seven_day_volume: sevenDayStat  ? sevenDayStat.volume  : null,
-        thirty_day_sales:  thirtyDayStat ? thirtyDayStat.sales  : null,
-        thirty_day_volume: thirtyDayStat ? thirtyDayStat.volume : null,
-        total_sales: statsData.total.sales,
-        total_volume: statsData.total.volume,
-        num_owners: statsData.total.num_owners,
-        total_supply:  collectionData.total_supply  ?? null,
-        created_date:  collectionData.created_date  ?? null,
-        one_day_volume_currency:    oneDayStat?.volume_symbol    ?? null,
-        seven_day_volume_currency:  sevenDayStat?.volume_symbol  ?? null,
-        thirty_day_volume_currency: thirtyDayStat?.volume_symbol ?? null,
-        total_volume_currency:      statsData.total.volume_symbol ?? null,
-      };
-    } catch (err) {
-      if (err instanceof OpenSeaApiError) {
-        const status =
-          err.status === 404 ? 404
-          : err.status === 429 ? 429
-          : err.status === 401 || err.status === 403 ? 502
-          : err.status >= 500 ? 502
-          : 400;
-        const message =
-          err.status === 404 ? "Collection not found."
-          : err.status === 429 ? "Rate limit exceeded."
-          : err.status >= 500 ? "The upstream OpenSea API returned an error. Please try again later."
-          : "Invalid request to the OpenSea API.";
-        // ToolHandlerError does not support custom headers, so 429 with
-        // Retry-After is handled by the outer handleToolError fallback.
-        // Re-throw the original OpenSeaApiError so Retry-After is preserved.
-        if (err.status === 429) throw err;
-        throw new ToolHandlerError(status, message);
-      }
-      throw err;
-    }
-  },
 });
 
 /**

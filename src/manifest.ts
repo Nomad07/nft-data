@@ -1,4 +1,4 @@
-import { defineManifest } from "@opensea/tool-sdk";
+import { defineManifest, x402UsdcPricing } from "@opensea/tool-sdk";
 
 export const manifest = defineManifest({
   type: "https://ercs.ethereum.org/ERCS/erc-8257#tool-manifest-v1",
@@ -108,6 +108,11 @@ export const manifest = defineManifest({
       },
     },
   },
+  pricing: x402UsdcPricing({
+    recipient: "0x344143199642e87320785823c20c2df107d17534",
+    amountUsdc: "0.01",
+    network: "base",
+  }),
   tags: ["nft", "trading"],
   image: "https://www.nftdata.app/nft-data-icon.svg",
   featuredImage: "https://www.nftdata.app/nft-data-banner.svg",
