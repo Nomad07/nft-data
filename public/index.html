@@ -303,10 +303,10 @@
     .stat-value.display { font-family: 'Space Grotesk', sans-serif; }
 
     .stat-currency {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 500;
       color: var(--subtle);
-      margin-top: 2px;
+      margin-left: 5px;
     }
 
     /* ── Contract card ── */
@@ -719,14 +719,13 @@
   }
 
   function renderStat(label, value, currency) {
-    const currencyHtml = currency
-      ? '<div class="stat-currency">' + escHtml(String(currency)) + '</div>'
+    var currencySpan = currency
+      ? '<span class="stat-currency">' + escHtml(String(currency)) + '</span>'
       : '';
     return [
       '<div class="stat-card">',
       '  <div class="stat-label">' + escHtml(label) + '</div>',
-      '  <div class="stat-value display tabular">' + escHtml(fmt(value)) + '</div>',
-      currencyHtml,
+      '  <div class="stat-value display tabular">' + escHtml(fmt(value)) + currencySpan + '</div>',
       '</div>',
     ].join('');
   }
@@ -798,14 +797,14 @@
       '<div class="stat-grid">',
       renderStat('Floor price',   d.floor_price,       d.floor_price_currency),
       renderStat('24h sales',     d.one_day_sales,     null),
-      renderStat('24h volume',    d.one_day_volume,    null),
+      renderStat('24h volume',    d.one_day_volume,    d.one_day_volume_currency),
       renderStat('Total sales',   d.total_sales,       null),
-      renderStat('Total volume',  d.total_volume,      null),
+      renderStat('Total volume',  d.total_volume,      d.total_volume_currency),
       renderStat('Owners',        d.num_owners,        null),
       renderStat('7d sales',      d.seven_day_sales,   null),
-      renderStat('7d volume',     d.seven_day_volume,  null),
+      renderStat('7d volume',     d.seven_day_volume,  d.seven_day_volume_currency),
       renderStat('30d sales',     d.thirty_day_sales,  null),
-      renderStat('30d volume',    d.thirty_day_volume, null),
+      renderStat('30d volume',    d.thirty_day_volume, d.thirty_day_volume_currency),
       renderStat('Total supply',  d.total_supply,      null),
       renderStat('Created',       fmtDate(d.created_date), null),
       '</div>',

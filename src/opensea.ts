@@ -19,6 +19,7 @@ export interface OpenSeaCollection {
 /** Shape of Total returned by GET /api/v2/collections/{slug}/stats */
 export interface OpenSeaStatsTotal {
   volume: number;
+  volume_symbol?: string;
   sales: number;
   num_owners: number;
   floor_price: number;
@@ -29,6 +30,7 @@ export interface OpenSeaStatsTotal {
 export interface OpenSeaIntervalStat {
   interval: string;
   volume: number;
+  volume_symbol?: string;
   sales: number;
 }
 

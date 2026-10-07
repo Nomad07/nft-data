@@ -35,6 +35,10 @@ const OutputSchema = z.object({
   num_owners: z.number(),
   total_supply: z.number().nullable(),
   created_date: z.string().nullable(),
+  one_day_volume_currency: z.string().nullable(),
+  seven_day_volume_currency: z.string().nullable(),
+  thirty_day_volume_currency: z.string().nullable(),
+  total_volume_currency: z.string().nullable(),
 });
 
 export type CollectionDataOutput = z.infer<typeof OutputSchema>;
@@ -76,6 +80,10 @@ export const toolHandler = createToolHandler({
         num_owners: statsData.total.num_owners,
         total_supply:  collectionData.total_supply  ?? null,
         created_date:  collectionData.created_date  ?? null,
+        one_day_volume_currency:    oneDayStat?.volume_symbol    ?? null,
+        seven_day_volume_currency:  sevenDayStat?.volume_symbol  ?? null,
+        thirty_day_volume_currency: thirtyDayStat?.volume_symbol ?? null,
+        total_volume_currency:      statsData.total.volume_symbol ?? null,
       };
     } catch (err) {
       if (err instanceof OpenSeaApiError) {

@@ -90,6 +90,22 @@ export const manifest = defineManifest({
         type: ["string", "null"],
         description: "ISO 8601 date when the collection was created. Null if not reported.",
       },
+      one_day_volume_currency: {
+        type: ["string", "null"],
+        description: "Currency symbol for the 24-hour volume. Null if not reported.",
+      },
+      seven_day_volume_currency: {
+        type: ["string", "null"],
+        description: "Currency symbol for the 7-day volume. Null if not reported.",
+      },
+      thirty_day_volume_currency: {
+        type: ["string", "null"],
+        description: "Currency symbol for the 30-day volume. Null if not reported.",
+      },
+      total_volume_currency: {
+        type: ["string", "null"],
+        description: "Currency symbol for the total lifetime volume. Null if not reported.",
+      },
     },
   },
   tags: ["nft", "trading"],
