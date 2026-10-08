@@ -573,6 +573,18 @@
       padding-bottom: 8px;
       border-bottom: 1px solid var(--border);
       margin-bottom: 2px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .section-title-updated {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--subtle);
+      letter-spacing: 0.03em;
+      text-transform: none;
+      font-family: 'DM Sans', sans-serif;
     }
   </style>
 </head>
@@ -777,7 +789,6 @@
     var contractsHtml = contracts.map(function (c) {
       return [
         '<div class="contract-card">',
-        '  <div class="contract-label">Contract</div>',
         '  <div class="contract-address-row">',
         '    <div class="contract-address mono">' + escHtml(c.address || '\u2014') + '</div>',
         c.address ? '    <button class="addr-copy-btn" type="button" aria-label="Copy address" data-addr="' + escHtml(c.address) + '">' +
@@ -819,7 +830,7 @@
       renderStat('Created',       fmtDate(d.created_date), null),
       '</div>',
 
-      contracts.length > 0 ? '<div class="section-title">Contract</div>' : '',
+      contracts.length > 0 ? '<div class="section-title"><span>Contract</span>' + (lastUpdated ? '<span class="section-title-updated">Updated ' + escHtml(lastUpdated) + '</span>' : '') + '</div>' : '',
       contractsHtml,
 
       '</div>',
@@ -829,6 +840,7 @@
   }
 
   var currentSlug = '';
+  var lastUpdated = '';
 
   function getDeepLink(slug) {
     return 'https://nftdata.app/?collection=' + encodeURIComponent(slug);
@@ -917,6 +929,8 @@
       // SUCCESS state: show data, empty stays hidden
       setStatus('');
       currentSlug = slug.trim();
+      var now = new Date();
+      lastUpdated = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       history.pushState(null, '', '?collection=' + encodeURIComponent(currentSlug));
       renderData(json);
       attachCopyLink();
