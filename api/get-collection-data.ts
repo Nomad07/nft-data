@@ -117,8 +117,12 @@ const initPromise: Promise<void> = httpServer.initialize();
 // ---------------------------------------------------------------------------
 // Minimal WHATWG Request → HTTPAdapter bridge
 // ---------------------------------------------------------------------------
+const CANONICAL_ORIGIN = "https://www.nftdata.app";
+
 function makeFetchAdapter(req: Request): HTTPAdapter {
-  const url = new URL(req.url);
+  // Vercel Node.js runtime may pass a relative URL (e.g. "/api/get-collection-data").
+  // URL constructor requires an absolute URL, so resolve against the canonical origin.
+  const url = new URL(req.url, CANONICAL_ORIGIN);
   const queryParams: Record<string, string> = {};
   url.searchParams.forEach((v, k) => { queryParams[k] = v; });
 
