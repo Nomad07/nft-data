@@ -314,5 +314,5 @@ async function invokeDataLogic(req: Request): Promise<Response> {
 }
 
 export const config = {
-  runtime: "edge",
+  runtime: "nodejs",
 };
