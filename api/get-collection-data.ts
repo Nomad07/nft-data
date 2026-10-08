@@ -8,6 +8,7 @@
  * The NFT/OpenSea data logic lives entirely in src/handler.ts and is unchanged.
  */
 
+import type { IncomingMessage, ServerResponse } from "node:http";
 import { x402HTTPResourceServer, HTTPFacilitatorClient, x402ResourceServer } from "@x402/core/server";
 import type { HTTPAdapter } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
@@ -124,58 +125,91 @@ function getInitPromise(): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Minimal WHATWG Request → HTTPAdapter bridge
+// Node IncomingMessage → HTTPAdapter bridge
+// Vercel Node.js runtime passes (IncomingMessage, ServerResponse), not Web Request.
 // ---------------------------------------------------------------------------
 const CANONICAL_ORIGIN = "https://www.nftdata.app";
 
-function makeFetchAdapter(req: Request): HTTPAdapter {
-  // Vercel Node.js runtime may pass a relative URL (e.g. "/api/get-collection-data").
-  // URL constructor requires an absolute URL, so resolve against the canonical origin.
-  const url = new URL(req.url, CANONICAL_ORIGIN);
+function makeNodeAdapter(req: IncomingMessage): HTTPAdapter {
+  const rawUrl = req.url ?? "/api/get-collection-data";
+  const url = new URL(rawUrl, CANONICAL_ORIGIN);
   const queryParams: Record<string, string> = {};
   url.searchParams.forEach((v, k) => { queryParams[k] = v; });
 
+  const getHeader = (name: string): string | undefined => {
+    const val = req.headers[name.toLowerCase()];
+    if (Array.isArray(val)) return val.join(", ");
+    return val;
+  };
+
   return {
-    getHeader:       (name: string) => req.headers.get(name) ?? undefined,
-    getMethod:       () => req.method,
+    getHeader,
+    getMethod:       () => (req.method ?? "POST").toUpperCase(),
     getPath:         () => url.pathname,
-    getUrl:          () => req.url,
-    getAcceptHeader: () => req.headers.get("Accept") ?? "",
-    getUserAgent:    () => req.headers.get("User-Agent") ?? "",
+    getUrl:          () => url.toString(),
+    getAcceptHeader: () => getHeader("accept") ?? "",
+    getUserAgent:    () => getHeader("user-agent") ?? "",
     getQueryParams:  () => queryParams,
     getQueryParam:   (name: string) => queryParams[name],
   };
 }
 
 // ---------------------------------------------------------------------------
-// Main handler
+// Write a Web Response into a Node ServerResponse
 // ---------------------------------------------------------------------------
-export default async function handler(req: Request): Promise<Response> {
-  // Lazy init: fires on first request, cached promise reused on all subsequent calls.
-  await getInitPromise();
+async function sendWebResponse(webRes: Response, res: ServerResponse): Promise<void> {
+  res.statusCode = webRes.status;
+  webRes.headers.forEach((value, name) => res.setHeader(name, value));
+  const body = await webRes.text();
+  res.end(body);
+}
 
-  const adapter = makeFetchAdapter(req);
+// ---------------------------------------------------------------------------
+// Main handler — Vercel Node.js (req, res) => void signature
+// ---------------------------------------------------------------------------
+export default async function handler(
+  req: IncomingMessage,
+  res: ServerResponse,
+): Promise<void> {
+  // Lazy init: fires on first request, cached promise reused on all subsequent calls.
+  try {
+    await getInitPromise();
+  } catch (err) {
+    res.statusCode = 500;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({ error: "Payment system unavailable. Please try again." }));
+    return;
+  }
+
+  const adapter = makeNodeAdapter(req);
   const context = { adapter, path: adapter.getPath(), method: adapter.getMethod() };
 
   let processResult;
   try {
     processResult = await httpServer.processHTTPRequest(context);
   } catch (err) {
-    return handleToolError(err);
+    const errRes = handleToolError(err);
+    await sendWebResponse(errRes, res);
+    return;
   }
 
   // ── No route matched or payment not required ──────────────────────────────
   if (processResult.type === "no-payment-required") {
-    return await invokeDataLogic(req);
+    const dataRes = await invokeDataLogic(req);
+    await sendWebResponse(dataRes, res);
+    return;
   }
 
   // ── Payment validation failed → return 402 challenge ─────────────────────
   if (processResult.type === "payment-error") {
     const { status, headers, body } = processResult.response;
-    return new Response(JSON.stringify(body), {
-      status,
-      headers: { ...headers, "Content-Type": "application/json" },
-    });
+    res.statusCode = status;
+    for (const [k, v] of Object.entries(headers ?? {})) {
+      res.setHeader(k, v as string);
+    }
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(body));
+    return;
   }
 
   // ── Payment verified → run business logic then settle ────────────────────
@@ -185,12 +219,15 @@ export default async function handler(req: Request): Promise<Response> {
   try {
     dataResponse = await invokeDataLogic(req);
   } catch (err) {
-    return handleToolError(err);
+    const errRes = handleToolError(err);
+    await sendWebResponse(errRes, res);
+    return;
   }
 
   // Only settle when business logic succeeded (status < 400)
   if (!dataResponse.ok) {
-    return dataResponse;
+    await sendWebResponse(dataResponse, res);
+    return;
   }
 
   const settleResult = await httpServer.processSettlement(
@@ -200,24 +237,21 @@ export default async function handler(req: Request): Promise<Response> {
   );
 
   if (!settleResult.success) {
-    return new Response(
-      JSON.stringify({ error: "settlement_failed", reason: settleResult.errorReason }),
-      { status: 402, headers: { "Content-Type": "application/json" } },
-    );
+    res.statusCode = 402;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({ error: "settlement_failed", reason: settleResult.errorReason }));
+    return;
   }
 
   // Attach settlement headers (PAYMENT-RESPONSE) to the data response
-  const finalHeaders = new Headers(dataResponse.headers);
+  res.statusCode = dataResponse.status;
+  dataResponse.headers.forEach((value, name) => res.setHeader(name, value));
   if (settleResult.headers) {
     for (const [k, v] of Object.entries(settleResult.headers)) {
-      finalHeaders.set(k, v);
+      res.setHeader(k, v as string);
     }
   }
-
-  return new Response(dataResponse.body, {
-    status: dataResponse.status,
-    headers: finalHeaders,
-  });
+  res.end(await dataResponse.text());
 }
 
 // ---------------------------------------------------------------------------
