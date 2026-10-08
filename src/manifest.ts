@@ -114,7 +114,7 @@ export const manifest = defineManifest({
     network: "base",
   }),
   tags: ["nft", "trading"],
-  image: "https://www.nftdata.app/nft-data-icon.svg",
+  image: "https://www.nftdata.app/nft-data-logo.jpg",
   featuredImage: "https://www.nftdata.app/nft-data-banner.svg",
   creatorAddress: "0x344143199642e87320785823c20c2df107d17534",
 });
