@@ -220,47 +220,6 @@
           }
         }
       }
-    },
-    "/api/collect": {
-      "post": {
-        "operationId": "collect_free",
-        "summary": "Get NFT collection data (free browser endpoint)",
-        "description": "Free endpoint for the NFT Data web interface. Returns the same structured NFT collection data as the paid endpoint. Not intended for programmatic agent use.",
-        "tags": ["NFT Data"],
-        "security": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "collection": {
-                    "type": "string",
-                    "description": "OpenSea collection slug.",
-                    "minLength": 1
-                  }
-                },
-                "required": ["collection"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/paths/~1api~1get-collection-data/post/responses/200/content/application~1json/schema"
-                }
-              }
-            }
-          },
-          "400": { "description": "Bad request." },
-          "404": { "description": "Collection not found." }
-        }
-      }
     }
   }
 }
