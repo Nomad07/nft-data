@@ -109,10 +109,19 @@ const httpServer = new x402HTTPResourceServer(resourceServer, {
 });
 
 // ---------------------------------------------------------------------------
-// Initialize once at module load (cold start). Fetches PayAI supported kinds.
-// Each invocation awaits this promise, so concurrent cold-start calls are safe.
+// Lazy initialization — deferred until the first real request.
+// Module-level network calls timeout in Vercel's cold-start sandbox before the
+// network stack is ready. The promise is created once and reused on all
+// subsequent invocations so /supported is fetched exactly once per instance.
 // ---------------------------------------------------------------------------
-const initPromise: Promise<void> = httpServer.initialize();
+let initPromise: Promise<void> | null = null;
+
+function getInitPromise(): Promise<void> {
+  if (!initPromise) {
+    initPromise = httpServer.initialize();
+  }
+  return initPromise;
+}
 
 // ---------------------------------------------------------------------------
 // Minimal WHATWG Request → HTTPAdapter bridge
@@ -142,8 +151,8 @@ function makeFetchAdapter(req: Request): HTTPAdapter {
 // Main handler
 // ---------------------------------------------------------------------------
 export default async function handler(req: Request): Promise<Response> {
-  // Ensure module-level initialize() has completed before processing any request.
-  await initPromise;
+  // Lazy init: fires on first request, cached promise reused on all subsequent calls.
+  await getInitPromise();
 
   const adapter = makeFetchAdapter(req);
   const context = { adapter, path: adapter.getPath(), method: adapter.getMethod() };
