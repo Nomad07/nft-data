@@ -4,7 +4,7 @@
     "title": "NFT Data",
     "version": "1.0.0",
     "description": "OpenSea Agent Tool that provides structured NFT collection and market data for AI agents.",
-    "x-guidance": "POST /api/get-collection-data with a JSON body containing a 'collection' field set to an OpenSea collection slug (e.g. 'doodles-official'). Requires x402 USDC payment on Base (0.01 USDC per request). Returns structured collection metadata, floor price, volume, sales, and owner data sourced from the OpenSea API v2."
+    "x-guidance": "POST /api/get-collection-data with a JSON body containing a 'collection' field set to an OpenSea collection slug (e.g. 'basedpunks'). Requires x402 USDC payment on Base (0.002 USDC per request). Returns structured collection metadata, floor price, volume, sales, and owner data sourced from the OpenSea API v2."
   },
   "paths": {
     "/api/get-collection-data": {
@@ -22,7 +22,7 @@
           "price": {
             "mode": "fixed",
             "currency": "USD",
-            "amount": "0.01"
+            "amount": "0.002"
           }
         },
         "requestBody": {

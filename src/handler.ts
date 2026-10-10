@@ -115,16 +115,16 @@ const handlerConfig = {
 
 /**
  * Paid handler — used by /api/get-collection-data (Tool #778).
- * Requires x402 payment (0.01 USDC on Base) via PayAI facilitator.
+ * Requires x402 payment (0.002 USDC on Base) via PayAI facilitator.
  */
 export const toolHandler = createToolHandler({
   ...handlerConfig,
   gates: [
     payaiX402Gate({
       recipient: "0x344143199642e87320785823c20c2df107d17534",
-      amountUsdc: "0.01",
+      amountUsdc: "0.002",
       network: "base",
-      description: "NFT Data — get_collection_data (0.01 USDC)",
+      description: "NFT Data — get_collection_data (0.002 USDC)",
     }),
   ],
 });

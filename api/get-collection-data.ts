@@ -98,7 +98,7 @@ const httpServer = new x402HTTPResourceServer(resourceServer, {
       maxTimeoutSeconds: 60,
     },
     resource: "https://www.nftdata.app/api/get-collection-data",
-    description: "NFT Data — get_collection_data (0.01 USDC). Returns structured NFT collection and market data for any OpenSea collection slug.",
+    description: "NFT Data — get_collection_data (0.002 USDC). Returns structured NFT collection and market data for any OpenSea collection slug.",
     mimeType: "application/json",
     serviceName: "NFT Data",
     tags: ["nft", "opensea", "market-data", "collection"],
