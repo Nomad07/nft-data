@@ -2,7 +2,7 @@
  * POST /api/get-collection-data
  *
  * ERC-8257 paid tool endpoint — x402 v2, ExactEvmScheme, Base mainnet.
- * Payment: 0.01 USDC (10000 atomic units) on Base via PayAI facilitator.
+ * Payment: 0.002 USDC (2000 atomic units) on Base via PayAI facilitator.
  * Discovery: extensions.bazaar declared for x402 Bazaar cataloging.
  *
  * The NFT/OpenSea data logic lives entirely in src/handler.ts and is unchanged.
@@ -92,7 +92,7 @@ const httpServer = new x402HTTPResourceServer(resourceServer, {
   [ROUTE_KEY]: {
     accepts: {
       scheme: "exact",
-      price: "$0.01",
+      price: "$0.002",
       network: "eip155:8453",
       payTo: PAY_TO,
       maxTimeoutSeconds: 60,
