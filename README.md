@@ -27,8 +27,16 @@ POST https://www.nftdata.app/api/get-collection-data
 | Registry contract  | `0x265bb2dbfc0a8165c9a1941eb1372f349bad2cf1`   |
 | Registry page      | https://opensea.io/tools/erc8257/base/778      |
 | Action             | `get_collection_data`                          |
-| Payment            | 0.01 USDC per call via x402 on Base            |
+| Payment            | 0.002 USDC per call via x402 v2 on Base        |
 | Manifest           | https://www.nftdata.app/.well-known/ai-tool/nft-data.json |
+
+---
+
+## Farcaster Mini App
+
+NFT Data is available as a Farcaster Mini App. Open it inside Warpcast or any Farcaster client to look up NFT collection statistics without leaving the app.
+
+**Mini App URL:** https://farcaster.xyz/miniapps/xGfhsTicjUjY/nft-data
 
 ---
 
@@ -45,13 +53,17 @@ The endpoint is protected by x402. Requests without a valid payment header recei
 
 ## x402 Payment
 
-The endpoint requires **0.01 USDC on Base** per successful call, paid via [x402](https://x402.org/) using EIP-3009.
+The endpoint requires **0.002 USDC on Base** per successful call, paid via [x402](https://x402.org/) v2 using EIP-3009 (`exact` scheme).
 
-Payment is routed to:
+| Field             | Value                                                        |
+|-------------------|--------------------------------------------------------------|
+| Network           | Base (`eip155:8453`)                                         |
+| Token             | USDC (`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`)         |
+| Amount            | `2000` atomic units (0.002 USDC)                            |
+| Scheme            | `exact`                                                      |
+| Recipient         | `0x344143199642E87320785823C20c2dF107D17534`                 |
 
-```
-0x344143199642e87320785823c20c2df107d17534
-```
+The 402 response uses the x402 v2 format — payment requirements are encoded in the `PAYMENT-REQUIRED` response header. The endpoint also exposes the official Bazaar discovery extension under `extensions.bazaar`, which describes the POST JSON input schema and an example response. Bazaar-compatible x402 clients can discover this endpoint through that extension.
 
 To call this tool from an OpenSea-compatible agent, reference it by its on-chain coordinates:
 
@@ -65,11 +77,11 @@ To call this tool from an OpenSea-compatible agent, reference it by its on-chain
 
 ```json
 {
-  "collection": "<opensea-collection-slug>"
+  "collection": "milady"
 }
 ```
 
-`collection` is the unique identifier visible in the collection's OpenSea URL, for example `basedpunks` from `opensea.io/collection/basedpunks`.
+`collection` is the OpenSea collection slug — the unique identifier visible in the collection's URL, for example `milady` from `opensea.io/collection/milady` or `basedpunks` from `opensea.io/collection/basedpunks`.
 
 **Validation:** the slug must be lowercase alphanumeric and may contain hyphens or underscores. Uppercase letters, spaces, and special characters are rejected with `HTTP 400`.
 
@@ -108,25 +120,26 @@ Currency values (`floor_price_currency`, `*_volume_currency`) are returned direc
 
 ## Verified Production Collections
 
-The OpenSea API supports **30 networks**. The table below lists 15 production-tested examples across a subset of those networks.
+The OpenSea API supports **30 networks**. The table below lists production-tested examples across a subset of those networks.
 
-| Network        | Slug                   | Contract                                       |
-|----------------|------------------------|------------------------------------------------|
-| Base           | `basedpunks`           | `0xcb28749c24af4797808364d71d71539bc01e76d4`   |
-| Base           | `gribbits`             | `0x38b7446dd746a98a101ec0bf1a0717784c4dc69f`   |
-| Ink            | `rekt-ink`             | `0x25aa78ab6785a4b0aeff5c170998992fd958d43d`   |
-| Ink            | `prtscn-ink`           | `0x3ea71c6abde8a1b3cf6e5683761a7378b4e9e448`   |
-| Robinhood Chain| `quotrons404`          | `0x027aca2794e44f24950d81227dcd516ffbb49d6e`   |
-| Robinhood Chain| `rare-friends-genesis` | `0x116eaa62241751e0c98da43d458600c6c17cd361`   |
-| HyperEVM       | `hypurr-hyperevm`      | `0x9125e2d6827a00b0f8330d6ef7bef07730bac685`   |
-| HyperEVM       | `hypio`                | `0x63eb9d77d083ca10c304e28d5191321977fd0bfb`   |
-| Arc            | `akarii`               | `0xbea22653119f73716905919708a612332bf98e3f`   |
-| Ronin          | `axie-land`            | `0x8c811e3c958e190f5ec15fb376533a3398620500`   |
-| Ronin          | `moki-collection`      | `0xabbf01d95346368d2d85995b28880f9c4557d7b0`   |
-| ApeChain       | `gimboznft`            | `0x81c9ce55e8214fd0f5181fd3d38f52fd8c33ec38`   |
-| ApeChain       | `gobs-on-ape`          | `0x8f8bff91ec8dc5bf340b23c91046e7ad550582bf`   |
-| Ethereum       | `azuki`                | `0xed5af388653567af2f388e6224dc7c4b3241c544`   |
-| Ethereum       | `pudgypenguins`        | `0xbd3531da5cf5857e7cfaa92426877b022e612cf8`   |
+| Network         | Slug                   | Contract                                       |
+|-----------------|------------------------|------------------------------------------------|
+| Base            | `basedpunks`           | `0xcb28749c24af4797808364d71d71539bc01e76d4`   |
+| Base            | `gribbits`             | `0x38b7446dd746a98a101ec0bf1a0717784c4dc69f`   |
+| Ink             | `rekt-ink`             | `0x25aa78ab6785a4b0aeff5c170998992fd958d43d`   |
+| Ink             | `prtscn-ink`           | `0x3ea71c6abde8a1b3cf6e5683761a7378b4e9e448`   |
+| Robinhood Chain | `quotrons404`          | `0x027aca2794e44f24950d81227dcd516ffbb49d6e`   |
+| Robinhood Chain | `rare-friends-genesis` | `0x116eaa62241751e0c98da43d458600c6c17cd361`   |
+| HyperEVM        | `hypurr-hyperevm`      | `0x9125e2d6827a00b0f8330d6ef7bef07730bac685`   |
+| HyperEVM        | `hypio`                | `0x63eb9d77d083ca10c304e28d5191321977fd0bfb`   |
+| HyperEVM        | `rekt-wolves-hype`     | `0x822c4f30414299e003ef39e9aba49d8f8d4445ba`   |
+| Arc             | `akarii`               | `0xbea22653119f73716905919708a612332bf98e3f`   |
+| Ronin           | `axie-land`            | `0x8c811e3c958e190f5ec15fb376533a3398620500`   |
+| Ronin           | `moki-collection`      | `0x47b5a7c2e4f07772696bbf8c8c32fe2b9eabd550`   |
+| ApeChain        | `gimboznft`            | `0x81c9ce55e8214fd0f5181fd3d38f52fd8c33ec38`   |
+| ApeChain        | `gobs-on-ape`          | `0xbebaa24108d6a03c7331464270b95278bbbe6ff7`   |
+| Ethereum        | `azuki`                | `0xed5af388653567af2f388e6224dc7c4b3241c544`   |
+| Ethereum        | `pudgypenguins`        | `0xbd3531da5cf5857e7cfaa92426877b022e612cf8`   |
 
 These examples have been tested in production and are not representative of all 30 supported networks.
 
@@ -147,7 +160,7 @@ The OpenSea API key is held server-side and is never exposed to callers or inclu
 
 ## Cache
 
-Responses are cached **in-memory for 60 seconds** per worker instance. Because the API runs on Vercel Edge, multiple isolated worker instances may be active simultaneously — cache hits are best-effort within a single warm instance, not globally shared. Cold workers always fetch from the OpenSea API.
+Responses are cached **in-memory for 60 seconds** per worker instance. The API runs on Vercel's Node.js runtime — multiple isolated instances may be active simultaneously, so cache hits are best-effort within a single warm instance, not globally shared. Cold instances always fetch from the OpenSea API.
 
 ---
 
