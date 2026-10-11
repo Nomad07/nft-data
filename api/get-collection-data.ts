@@ -102,7 +102,7 @@ const httpServer = new x402HTTPResourceServer(resourceServer, {
     mimeType: "application/json",
     serviceName: "NFT Data",
     tags: ["nft", "opensea", "market-data", "collection"],
-    iconUrl: "https://www.nftdata.app/nft-data-logo.jpg",
+    iconUrl: "https://www.nftdata.app/nft-data-logo.png",
     extensions: {
       ...bazaarExtension,
     },
