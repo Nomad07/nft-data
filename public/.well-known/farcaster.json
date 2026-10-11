@@ -26,7 +26,7 @@
     "ogTitle": "NFT Data",
     "ogDescription": "Access structured NFT collection data through the NFT Data API",
     "ogImageUrl": "https://www.nftdata.app/nft-data-og.png",
-    "castShareUrl": "https://warpcast.com/~/compose?text=Check%20out%20NFT%20Data&embeds[]=https://www.nftdata.app"
+    "castShareUrl": "https://www.nftdata.app"
   },
   "accountAssociation": {
     "header": "eyJmaWQiOjU3NDAwMCwidHlwZSI6ImF1dGgiLCJrZXkiOiIweGJFRDhCNDg1NWYwYWRhMDAzOTNmRmU1NWQ4MWRkNTQ4NjZjNTliNmMifQ",
