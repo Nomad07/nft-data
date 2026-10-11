@@ -1,0 +1,36 @@
+{
+  "frame": {
+    "name": "NFT Data",
+    "version": "1",
+    "iconUrl": "https://www.nftdata.app/nft-data-icon.png",
+    "homeUrl": "https://www.nftdata.app",
+    "imageUrl": "https://www.nftdata.app/nft-data-preview.png",
+    "buttonTitle": "Open NFT Data",
+    "splashImageUrl": "https://www.nftdata.app/nft-data-splash.png",
+    "splashBackgroundColor": "#0d1b2f",
+    "subtitle": "OpenSea collection data",
+    "description": "Get structured NFT collection data from OpenSea using a simple API. Designed for developers and AI agents.",
+    "primaryCategory": "developer-tools",
+    "screenshotUrls": [
+      "https://www.nftdata.app/nft-data-screenshot.png"
+    ],
+    "heroImageUrl": "https://www.nftdata.app/nft-data-og.png",
+    "tags": [
+      "nft",
+      "opensea",
+      "api",
+      "x402",
+      "base"
+    ],
+    "tagline": "Collection data for agents",
+    "ogTitle": "NFT Data",
+    "ogDescription": "Access structured NFT collection data through the NFT Data API",
+    "ogImageUrl": "https://www.nftdata.app/nft-data-og.png",
+    "castShareUrl": "https://warpcast.com/~/compose?text=Check%20out%20NFT%20Data&embeds[]=https://www.nftdata.app"
+  },
+  "accountAssociation": {
+    "header": "eyJmaWQiOjU3NDAwMCwidHlwZSI6ImF1dGgiLCJrZXkiOiIweGJFRDhCNDg1NWYwYWRhMDAzOTNmRmU1NWQ4MWRkNTQ4NjZjNTliNmMifQ",
+    "payload": "eyJkb21haW4iOiJ3d3cubmZ0ZGF0YS5hcHAifQ",
+    "signature": "/9jtqPmMsc5kHvDCjXUAPdo/4wdX5kfqo8qDLg+ioDAxPkJRzoELAi1J39KGfPp7iE+c4VrC2CYGo+wCO5P8Jhs="
+  }
+}
