@@ -15,6 +15,10 @@
   <meta name="twitter:title" content="NFT Data - OpenSea collection intelligence for AI agents" />
   <meta name="twitter:description" content="Query any OpenSea NFT collection and get structured market data instantly. An ERC-8257 AI agent tool." />
   <meta name="twitter:image" content="https://www.nftdata.app/nft-data-banner.svg" />
+  <!-- Farcaster Mini App embed metadata -->
+  <meta name="fc:miniapp" content='{"version":"1","imageUrl":"https://www.nftdata.app/nft-data-logo.jpg","button":{"title":"Check NFT Collection","action":{"type":"launch_miniapp","url":"https://www.nftdata.app/","name":"NFT Data","splashImageUrl":"https://www.nftdata.app/nft-data-logo.jpg","splashBackgroundColor":"#0d1b2f"}}}' />
+  <!-- Backward-compat alias for older Farcaster clients -->
+  <meta name="fc:frame" content='{"version":"1","imageUrl":"https://www.nftdata.app/nft-data-logo.jpg","button":{"title":"Check NFT Collection","action":{"type":"launch_frame","url":"https://www.nftdata.app/","name":"NFT Data","splashImageUrl":"https://www.nftdata.app/nft-data-logo.jpg","splashBackgroundColor":"#0d1b2f"}}}' />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -989,5 +993,23 @@
 })();
 </script>
 
+<!-- Farcaster Mini App SDK — signals the host to hide the splash screen -->
+<script src="https://cdn.jsdelivr.net/npm/@farcaster/miniapp-sdk@0.3.0/dist/index.min.js"></script>
+<script>
+(function () {
+  // Call ready() only when running inside a Farcaster Mini App host.
+  // Outside of a Mini App context (normal browser), isInMiniApp() resolves
+  // false quickly and we skip the call entirely.
+  if (typeof window !== 'undefined' && window.miniapp && window.miniapp.sdk) {
+    window.miniapp.sdk.isInMiniApp().then(function (inApp) {
+      if (inApp) {
+        window.miniapp.sdk.actions.ready();
+      }
+    }).catch(function () {
+      // Silently ignore — not in a Mini App or SDK unavailable.
+    });
+  }
+})();
+</script>
 </body>
 </html>
