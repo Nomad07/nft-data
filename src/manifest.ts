@@ -110,7 +110,7 @@ export const manifest = defineManifest({
   },
   pricing: x402UsdcPricing({
     recipient: "0x344143199642e87320785823c20c2df107d17534",
-    amountUsdc: "0.01",
+    amountUsdc: "0.002",
     network: "base",
   }),
   tags: ["nft", "trading"],
