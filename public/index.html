@@ -234,7 +234,6 @@
 
     .copy-link-btn {
       flex-shrink: 0;
-      align-self: center;
       font-size: 12px;
       font-weight: 500;
       color: var(--subtle);
@@ -262,6 +261,34 @@
     .copy-link-btn.copied {
       color: var(--success);
       border-color: var(--success);
+    }
+
+    /* ── Search card footer row (shown after successful load) ── */
+    .search-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+
+    /* ── AI Analysis coming-soon badge ── */
+    .ai-coming-soon {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: default;
+      user-select: none;
+    }
+
+    .ai-coming-soon-label {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--subtle);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
     .collection-name {
@@ -638,7 +665,10 @@
         </button>
       </div>
       <div id="status-msg" class="status-strip" aria-live="polite" aria-atomic="true"></div>
-      <p class="try-example">Try: <a href="https://nftdata.app/?collection=milady">Milady Maker</a></p>
+      <div id="search-card-footer" class="search-card-footer">
+        <p class="try-example" style="margin-top:0;">Try: <a href="https://nftdata.app/?collection=milady">Milady Maker</a></p>
+        <button class="copy-link-btn" id="copy-link-btn" type="button" hidden>Copy Link</button>
+      </div>
     </div>
   </section>
 
@@ -682,11 +712,12 @@
 (function () {
   'use strict';
 
-  const input  = document.getElementById('slug-input');
-  const btn    = document.getElementById('fetch-btn');
-  const status = document.getElementById('status-msg');
-  const empty  = document.getElementById('empty-state');
-  const panel  = document.getElementById('data-panel');
+  const input    = document.getElementById('slug-input');
+  const btn      = document.getElementById('fetch-btn');
+  const status   = document.getElementById('status-msg');
+  const empty    = document.getElementById('empty-state');
+  const panel    = document.getElementById('data-panel');
+  const copyBtn  = document.getElementById('copy-link-btn');
 
   // ── State constants ──────────────────────────────────────────────────────
   // IDLE    : initial — empty state visible, panel hidden
@@ -712,11 +743,18 @@
     empty.hidden = false;
     panel.hidden = true;
     panel.innerHTML = '';
+    copyBtn.hidden = true;
+    copyBtn.textContent = 'Copy Link';
+    copyBtn.classList.remove('copied');
   }
 
   function showPanel() {
     empty.hidden = true;
     panel.hidden = false;
+  }
+
+  function showCopyLink() {
+    copyBtn.hidden = false;
   }
 
   function escHtml(s) {
@@ -815,7 +853,10 @@
       '    <div class="collection-name display">' + escHtml(d.name || '\u2014') + '</div>',
       '    <div class="collection-slug mono">' + escHtml(d.slug || '\u2014') + '</div>',
       '  </div>',
-      '  <button class="copy-link-btn" id="copy-link-btn" type="button">Copy Link</button>',
+      '  <span class="ai-coming-soon" aria-label="AI Analysis coming soon">',
+      '    \u2728 AI Analysis',
+      '    <span class="ai-coming-soon-label">Coming Soon</span>',
+      '  </span>',
       '</div>',
 
       '<div class="section-title">Market</div>',
@@ -850,38 +891,35 @@
     return 'https://nftdata.app/?collection=' + encodeURIComponent(slug);
   }
 
-  function attachCopyLink() {
-    var copyBtn = document.getElementById('copy-link-btn');
-    if (!copyBtn) return;
-    copyBtn.addEventListener('click', function () {
-      if (!currentSlug) return;
-      var url = getDeepLink(currentSlug);
-      navigator.clipboard.writeText(url).then(function () {
-        copyBtn.textContent = 'Link copied \u2713';
-        copyBtn.classList.add('copied');
-        setTimeout(function () {
-          copyBtn.textContent = 'Copy Link';
-          copyBtn.classList.remove('copied');
-        }, 2000);
-      }).catch(function () {
-        // Fallback for browsers without clipboard API
-        var ta = document.createElement('textarea');
-        ta.value = url;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        copyBtn.textContent = 'Link copied \u2713';
-        copyBtn.classList.add('copied');
-        setTimeout(function () {
-          copyBtn.textContent = 'Copy Link';
-          copyBtn.classList.remove('copied');
-        }, 2000);
-      });
+  // Attach copy-link handler once at startup — the button lives in static HTML.
+  copyBtn.addEventListener('click', function () {
+    if (!currentSlug) return;
+    var url = getDeepLink(currentSlug);
+    navigator.clipboard.writeText(url).then(function () {
+      copyBtn.textContent = 'Link copied \u2713';
+      copyBtn.classList.add('copied');
+      setTimeout(function () {
+        copyBtn.textContent = 'Copy Link';
+        copyBtn.classList.remove('copied');
+      }, 2000);
+    }).catch(function () {
+      // Fallback for browsers without clipboard API
+      var ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      copyBtn.textContent = 'Link copied \u2713';
+      copyBtn.classList.add('copied');
+      setTimeout(function () {
+        copyBtn.textContent = 'Copy Link';
+        copyBtn.classList.remove('copied');
+      }, 2000);
     });
-  }
+  });
 
   async function fetchCollection(slug, pushUrl) {
     if (!slug.trim()) {
@@ -937,7 +975,7 @@
       lastUpdated = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       history.pushState(null, '', '?collection=' + encodeURIComponent(currentSlug));
       renderData(json);
-      attachCopyLink();
+      showCopyLink();
 
     } catch (err) {
       // ERROR state: network failure
