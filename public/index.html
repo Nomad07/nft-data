@@ -273,22 +273,30 @@
 
     /* ── AI Analysis coming-soon badge ── */
     .ai-coming-soon {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--muted);
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-end;
       cursor: default;
       user-select: none;
     }
 
+    .ai-coming-soon-main {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
     .ai-coming-soon-label {
+      padding-left: 1.15em;
       font-size: 10px;
       font-weight: 500;
       color: var(--subtle);
       letter-spacing: 0.04em;
       text-transform: uppercase;
+      align-self: flex-start;
     }
 
     .collection-name {
@@ -854,7 +862,7 @@
       '    <div class="collection-slug mono">' + escHtml(d.slug || '\u2014') + '</div>',
       '  </div>',
       '  <span class="ai-coming-soon" aria-label="AI Analysis coming soon">',
-      '    \u2728 AI Analysis',
+      '    <span class="ai-coming-soon-main">\u2728 AI Analysis</span>',
       '    <span class="ai-coming-soon-label">Coming Soon</span>',
       '  </span>',
       '</div>',
