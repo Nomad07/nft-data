@@ -271,32 +271,82 @@
       margin-top: 8px;
     }
 
-    /* ── AI Analysis coming-soon badge ── */
-    .ai-coming-soon {
-      display: inline-flex;
-      flex-direction: column;
-      align-items: flex-end;
-      cursor: default;
-      user-select: none;
-    }
-
-    .ai-coming-soon-main {
-      display: flex;
-      align-items: baseline;
-      gap: 5px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--muted);
-    }
-
-    .ai-coming-soon-label {
-      padding-left: 1.15em;
-      font-size: 10px;
+    /* ── AI Analysis button ── */
+    .ai-analysis-btn {
+      flex-shrink: 0;
+      font-size: 12px;
       font-weight: 500;
       color: var(--subtle);
-      letter-spacing: 0.04em;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 5px 12px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+
+    .ai-analysis-btn:hover:not(:disabled) {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--surface-strong);
+    }
+
+    .ai-analysis-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .ai-analysis-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    /* ── AI Analysis result card ── */
+    .ai-result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ai-result-header {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.07em;
       text-transform: uppercase;
-      align-self: flex-start;
+    }
+
+    .ai-result-body {
+      font-size: 13px;
+      color: var(--ink-2);
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .ai-result-error {
+      font-size: 13px;
+      color: var(--danger);
+      line-height: 1.5;
+    }
+
+    .ai-result-rate-limit h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .ai-result-rate-limit p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
     }
 
     .collection-name {
@@ -754,6 +804,7 @@
     copyBtn.hidden = true;
     copyBtn.textContent = 'Copy Link';
     copyBtn.classList.remove('copied');
+    currentData = null;
   }
 
   function showPanel() {
@@ -861,10 +912,7 @@
       '    <div class="collection-name display">' + escHtml(d.name || '\u2014') + '</div>',
       '    <div class="collection-slug mono">' + escHtml(d.slug || '\u2014') + '</div>',
       '  </div>',
-      '  <span class="ai-coming-soon" aria-label="AI Analysis coming soon">',
-      '    <span class="ai-coming-soon-main">\u2728 AI Analysis</span>',
-      '    <span class="ai-coming-soon-label">Coming Soon</span>',
-      '  </span>',
+      '  <button class="ai-analysis-btn" id="ai-analysis-btn" type="button" aria-label="Run AI Analysis for this collection">\u2728 AI Analysis</button>',
       '</div>',
 
       '<div class="section-title">Market</div>',
@@ -894,6 +942,7 @@
 
   var currentSlug = '';
   var lastUpdated = '';
+  var currentData = null; // most recently loaded CollectionData object
 
   function getDeepLink(slug) {
     return 'https://nftdata.app/?collection=' + encodeURIComponent(slug);
@@ -953,7 +1002,8 @@
       var json = await res.json().catch(function () { return null; });
 
       if (!res.ok) {
-        // ERROR state: show error card in panel, empty stays hidden
+        // ERROR state: clear stale collection state, show error card in panel
+        currentData = null;
         if (res.status === 404) {
           renderError(
             'Collection not found',
@@ -969,6 +1019,7 @@
       }
 
       if (!json || typeof json !== 'object') {
+        currentData = null;
         renderError(
           'Unable to retrieve collection data',
           'We could not retrieve this collection data right now. Please try again.'
@@ -979,6 +1030,7 @@
       // SUCCESS state: show data, empty stays hidden
       setStatus('');
       currentSlug = slug.trim();
+      currentData = json;
       var now = new Date();
       lastUpdated = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       history.pushState(null, '', '?collection=' + encodeURIComponent(currentSlug));
@@ -987,6 +1039,7 @@
 
     } catch (err) {
       // ERROR state: network failure
+      currentData = null;
       renderError(
         'Unable to retrieve collection data',
         'Network error. Check your connection and try again.'
@@ -996,8 +1049,127 @@
     }
   }
 
+  // ── AI Analysis ─────────────────────────────────────────────────────────
+
+  var aiAnalysisPending = false;
+
+  /**
+   * runAiAnalysis — called when the user clicks the ✨ AI Analysis button.
+   * Sends currentData to /api/analyze (server-side BlockRun call) and
+   * renders the result inside the data panel below the stat grid.
+   *
+   * Stale-response guard: we snapshot the slug at call time; if the user
+   * loads a different collection before the response arrives, we discard it.
+   */
+  async function runAiAnalysis() {
+    if (aiAnalysisPending) return;
+    if (!currentData || !currentSlug) return;
+
+    var aiBtn = document.getElementById('ai-analysis-btn');
+    if (!aiBtn) return;
+
+    aiAnalysisPending = true;
+    var snapshotSlug = currentSlug;
+
+    // Show loading state on the button
+    aiBtn.disabled = true;
+    aiBtn.textContent = '\u2728 Analysing\u2026';
+
+    // Remove any previous result card
+    var existing = document.getElementById('ai-result-section');
+    if (existing) existing.remove();
+
+    try {
+      var res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentData),
+      });
+
+      // Stale-response guard: discard if the user loaded a different collection
+      if (currentSlug !== snapshotSlug) return;
+
+      var aiBtn2 = document.getElementById('ai-analysis-btn');
+      if (aiBtn2) {
+        aiBtn2.disabled = false;
+        aiBtn2.textContent = '\u2728 AI Analysis';
+      }
+
+      var json = null;
+      try { json = await res.json(); } catch (_) { /* handled below */ }
+
+      var section = document.createElement('div');
+      section.id = 'ai-result-section';
+      section.className = 'ai-result-card';
+
+      if (res.status === 429 || (json && json.error === 'free_tier_rate_limited')) {
+        // Free-tier rate limit — exact copy required by spec
+        section.innerHTML =
+          '<div class="ai-result-rate-limit">' +
+          '<h3>Your free AI limit has been reached</h3>' +
+          '<p>You have reached your free AI usage limit. Please try again later.</p>' +
+          '</div>';
+      } else if (!res.ok || !json || typeof json.analysis !== 'string') {
+        var msg = (json && typeof json.error === 'string' && json.error !== 'free_tier_rate_limited')
+          ? escHtml(json.error)
+          : 'The AI analysis is temporarily unavailable. Please try again later.';
+        section.innerHTML =
+          '<div class="ai-result-header">\u2728 AI Analysis</div>' +
+          '<div class="ai-result-error">' + msg + '</div>';
+      } else {
+        // Success — render as plain text (pre-wrap), NOT innerHTML
+        var header = document.createElement('div');
+        header.className = 'ai-result-header';
+        header.textContent = '\u2728 AI Analysis';
+
+        var body = document.createElement('div');
+        body.className = 'ai-result-body';
+        body.textContent = json.analysis; // textContent — never innerHTML
+
+        section.appendChild(header);
+        section.appendChild(body);
+      }
+
+      // Insert the result card at the bottom of the results div
+      var results = panel.querySelector('.results');
+      if (results && document.getElementById('ai-result-section') === null) {
+        results.appendChild(section);
+      }
+
+    } catch (_err) {
+      // Guard against stale response being shown after collection switch
+      if (currentSlug !== snapshotSlug) return;
+
+      var aiBtn3 = document.getElementById('ai-analysis-btn');
+      if (aiBtn3) {
+        aiBtn3.disabled = false;
+        aiBtn3.textContent = '\u2728 AI Analysis';
+      }
+
+      var errSection = document.createElement('div');
+      errSection.id = 'ai-result-section';
+      errSection.className = 'ai-result-card';
+      errSection.innerHTML =
+        '<div class="ai-result-header">\u2728 AI Analysis</div>' +
+        '<div class="ai-result-error">Network error. Please check your connection and try again.</div>';
+
+      var results2 = panel.querySelector('.results');
+      if (results2 && document.getElementById('ai-result-section') === null) {
+        results2.appendChild(errSection);
+      }
+    } finally {
+      aiAnalysisPending = false;
+    }
+  }
+
   // Delegated handler for contract address copy buttons
   panel.addEventListener('click', function (e) {
+    // AI Analysis button — delegate to runAiAnalysis
+    if (e.target.closest('#ai-analysis-btn')) {
+      runAiAnalysis();
+      return;
+    }
+
     var copyBtn = e.target.closest('.addr-copy-btn');
     if (!copyBtn) return;
     var addr = copyBtn.getAttribute('data-addr');
