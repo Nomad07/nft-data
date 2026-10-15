@@ -18,7 +18,7 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 
 const BLOCKRUN_ENDPOINT = "https://blockrun.ai/api/v1/chat/completions";
-const MODEL = "nvidia/nemotron-3.5-lightning";
+const MODEL = "nvidia/nemotron-3-ultra-550b";
 
 // Maximum body size accepted from the browser (bytes).
 // A full collection payload is ~500 bytes; 8 KB is a generous ceiling.
@@ -150,20 +150,36 @@ function buildPrompt(d: CollectionData): string {
     `  All-time — sales: ${na(d.total_sales)}, volume: ${cur(d.total_volume, d.total_volume_currency)}`,
   ];
 
-  return `You are a concise NFT market analyst. Analyse the following OpenSea collection data and produce a brief written analysis.
+  return `You are a concise NFT market analyst. Produce a brief, final, user-facing analysis of the NFT collection data below.
+
+IMPORTANT — output rules:
+- Return ONLY the finished analysis, ready to display directly to a user.
+- Do NOT include any internal reasoning, chain-of-thought, scratchpads, deliberation steps, draft plans, step-by-step breakdowns, self-instructions, or process notes.
+- Do NOT begin your response with phrases such as "Here's a thinking process", "Analyze User Request", "Deconstruct the Data", "Let me think", "Step 1", or any similar internal process marker.
+- Output the four sections below and nothing else before or after them.
 
 Data:
 ${lines.join("\n")}
 
-Instructions:
-- Base your analysis only on the data provided above.
-- If a metric is listed as N/A it is unavailable; do not invent or estimate it.
-- Clearly separate observations (what the numbers show) from interpretations (what they might mean).
-- Include short sections: Market Activity, Ownership & Supply, Key Observations.
-- End with a one-sentence summary.
+Analysis sections (use these exact bold headings):
+**Market Activity**
+Describe what the sales and volume numbers show. State facts; note if data is missing or N/A.
+
+**Ownership & Supply**
+Describe owner count and supply. Do not claim concentration or decentralisation without sufficient evidence.
+
+**Key Observations**
+One or two cautious interpretations of the data. Distinguish observation from inference. Avoid predictions and guarantees.
+
+**Summary**
+One sentence summarising the collection's current market position based solely on the data provided.
+
+Additional rules:
+- Use only the data supplied above. Never invent metrics, dates, or events.
+- Acknowledge missing or N/A values explicitly when they affect the analysis.
 - Do not present this as financial advice.
-- Keep the response concise — under 300 words.
-- Use plain prose, not bullet-heavy lists. Short paragraphs preferred.`;
+- Keep the total response under 300 words.
+- Write in plain prose. Short paragraphs. No bullet lists.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -247,7 +263,31 @@ async function callBlockRun(prompt: string): Promise<string> {
     throw new UpstreamError("empty_response", "AI service returned an empty response.");
   }
 
-  return content.trim();
+  // Reject internal reasoning / draft responses before they reach the user.
+  // These patterns indicate the model returned chain-of-thought or scratchpad
+  // content rather than a finished analysis.
+  const trimmed = content.trimStart();
+  const REASONING_PREFIXES = [
+    "here's a thinking process",
+    "here is a thinking process",
+    "analyze user request",
+    "deconstruct the data",
+    "let me think",
+    "let me analyze",
+    "step 1",
+    "step-by-step",
+    "internal reasoning",
+    "chain of thought",
+    "scratchpad",
+    "<thinking>",
+    "thinking process:",
+  ];
+  const lc = trimmed.toLowerCase();
+  if (REASONING_PREFIXES.some((p) => lc.startsWith(p))) {
+    throw new UpstreamError("analysis_unavailable", "Model returned internal draft content.");
+  }
+
+  return trimmed;
 }
 
 // ---------------------------------------------------------------------------
@@ -329,6 +369,9 @@ export default async function handler(req: Request): Promise<Response> {
       }
       if (err.code === "timeout") {
         return json({ error: "The AI request timed out. Please try again." }, 504);
+      }
+      if (err.code === "analysis_unavailable") {
+        return json({ error: "analysis_unavailable" }, 502);
       }
       // Other upstream errors — generic message, no internal details
       return json({ error: "The AI analysis service is temporarily unavailable. Please try again." }, 502);
