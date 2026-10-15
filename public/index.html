@@ -243,140 +243,6 @@
       margin-top: 2px;
     }
 
-    /* ── AI Analysis — hidden while feature is disabled ── */
-    .ai-analysis-btn-row { display: none !important; }
-    #ai-result-section   { display: none !important; }
-
-    /* ── AI Analysis button row (below contract block) ── */
-    .ai-analysis-btn-row {
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    /* ── AI Analysis button ── */
-    .ai-analysis-btn {
-      flex-shrink: 0;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--subtle);
-      background: var(--surface);
-      border: 1px solid var(--border-raised);
-      border-radius: var(--radius-sm);
-      padding: 5px 13px;
-      cursor: pointer;
-      font-family: 'DM Sans', sans-serif;
-      white-space: nowrap;
-      transition: color 0.15s, border-color 0.15s, background 0.15s;
-      max-width: 100%;
-    }
-
-    .ai-analysis-btn:hover:not(:disabled) {
-      color: var(--accent);
-      border-color: var(--accent);
-      background: var(--accent-dim);
-    }
-
-    .ai-analysis-btn:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-
-    .ai-analysis-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    @media (max-width: 400px) {
-      .ai-analysis-btn { width: 100%; text-align: center; }
-      .ai-analysis-btn-row { justify-content: stretch; }
-    }
-
-    /* ── AI Analysis result card ── */
-    .ai-result-card {
-      background: var(--surface);
-      border: 1px solid var(--border-raised);
-      border-radius: var(--radius-sm);
-      padding: 16px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      box-shadow: var(--shadow-card);
-    }
-
-    .ai-result-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--subtle);
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-    }
-
-    .ai-result-copy-btn {
-      flex-shrink: 0;
-      background: none;
-      border: 1px solid var(--border-raised);
-      border-radius: var(--radius-xs);
-      padding: 2px 7px;
-      cursor: pointer;
-      color: var(--subtle);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.03em;
-      text-transform: none;
-      line-height: 1.6;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      transition: color 0.15s, border-color 0.15s;
-    }
-
-    .ai-result-copy-btn:hover { color: var(--accent); border-color: var(--accent); }
-    .ai-result-copy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    .ai-result-copy-btn.copied { color: var(--success); border-color: var(--success); }
-
-    .ai-result-body {
-      font-size: 13px;
-      color: var(--ink-2);
-      line-height: 1.65;
-      word-break: break-word;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .ai-result-body p { margin: 0; line-height: 1.65; }
-
-    .ai-result-body b {
-      font-weight: 600;
-      color: var(--ink);
-      display: block;
-      margin-bottom: 2px;
-    }
-
-    .ai-result-error {
-      font-size: 13px;
-      color: var(--danger);
-      line-height: 1.5;
-    }
-
-    .ai-result-rate-limit h3 {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--ink);
-      margin-bottom: 4px;
-    }
-
-    .ai-result-rate-limit p {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
     /* ── Results ── */
     .results {
       display: flex;
@@ -956,7 +822,6 @@
     empty.hidden = false;
     panel.hidden = true;
     panel.innerHTML = '';
-    currentData = null;
   }
 
   function showPanel() {
@@ -1082,10 +947,6 @@
       contracts.length > 0 ? '<div class="section-title"><span>Contract</span>' + (lastUpdated ? '<span class="section-title-updated">Updated ' + escHtml(lastUpdated) + '</span>' : '') + '</div>' : '',
       contractsHtml,
 
-      '<div class="ai-analysis-btn-row">',
-      '  <button class="ai-analysis-btn" id="ai-analysis-btn" type="button" aria-label="Run AI Analysis for this collection">\u2728 AI Analysis</button>',
-      '</div>',
-
       '</div>',
     ].join('');
 
@@ -1094,7 +955,6 @@
 
   var currentSlug = '';
   var lastUpdated = '';
-  var currentData = null; // most recently loaded CollectionData object
 
   function getDeepLink(slug) {
     return 'https://nftdata.app/?collection=' + encodeURIComponent(slug);
@@ -1151,8 +1011,6 @@
       var json = await res.json().catch(function () { return null; });
 
       if (!res.ok) {
-        // ERROR state: clear stale collection state, show error card in panel
-        currentData = null;
         if (res.status === 404) {
           renderError(
             'Collection not found',
@@ -1168,7 +1026,6 @@
       }
 
       if (!json || typeof json !== 'object') {
-        currentData = null;
         renderError(
           'Unable to retrieve collection data',
           'We could not retrieve this collection data right now. Please try again.'
@@ -1179,7 +1036,6 @@
       // SUCCESS state: show data, empty stays hidden
       setStatus('');
       currentSlug = slug.trim();
-      currentData = json;
       var now = new Date();
       lastUpdated = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       history.pushState(null, '', '?collection=' + encodeURIComponent(currentSlug));
@@ -1187,7 +1043,6 @@
 
     } catch (err) {
       // ERROR state: network failure
-      currentData = null;
       renderError(
         'Unable to retrieve collection data',
         'Network error. Check your connection and try again.'
@@ -1197,229 +1052,8 @@
     }
   }
 
-  // ── AI Analysis ─────────────────────────────────────────────────────────
-
-  var aiAnalysisPending = false;
-
-  /**
-   * renderAiMarkdown — safely renders the AI response with basic formatting.
-   * Supports **bold** headings and paragraph breaks (\n\n).
-   * All text is assigned via textContent — never innerHTML.
-   * Returns a <div class="ai-result-body"> element.
-   */
-  function renderAiMarkdown(text) {
-    var container = document.createElement('div');
-    container.className = 'ai-result-body';
-
-    var paragraphs = text.split(/\n\n+/);
-    paragraphs.forEach(function (para) {
-      para = para.trim();
-      if (!para) return;
-      var p = document.createElement('p');
-
-      // Parse **bold** spans within the paragraph.
-      // Split on ** boundaries; odd-indexed segments are bold.
-      var parts = para.split('**');
-      parts.forEach(function (part, i) {
-        if (!part) return;
-        if (i % 2 === 1) {
-          // Bold segment
-          var b = document.createElement('b');
-          b.textContent = part;
-          p.appendChild(b);
-        } else {
-          // Plain text — prepend a newline if this follows a bold block
-          // and the text starts mid-line (i.e., not a new paragraph block).
-          p.appendChild(document.createTextNode(part));
-        }
-      });
-
-      container.appendChild(p);
-    });
-
-    return container;
-  }
-
-  /**
-   * stripMarkdown — returns the AI response as clean plain text for copying.
-   * Removes ** bold markers; normalises whitespace.
-   */
-  function stripMarkdown(text) {
-    return text.replace(/\*\*/g, '').replace(/\n{3,}/g, '\n\n').trim();
-  }
-
-  /**
-   * runAiAnalysis — called when the user clicks the ✨ AI Analysis button.
-   * Sends currentData to /api/analyze (server-side BlockRun call) and
-   * renders the result inside the data panel below the AI Analysis button.
-   *
-   * Stale-response guard: snapshot the slug at call time; if the user
-   * loads a different collection before the response arrives, discard it.
-   */
-  async function runAiAnalysis() {
-    if (aiAnalysisPending) return;
-    if (!currentData || !currentSlug) return;
-
-    var aiBtn = document.getElementById('ai-analysis-btn');
-    if (!aiBtn) return;
-
-    aiAnalysisPending = true;
-    var snapshotSlug = currentSlug;
-
-    // Show loading state on the button
-    aiBtn.disabled = true;
-    aiBtn.textContent = '\u2728 Analysing\u2026';
-
-    // Remove any previous result card (prevents duplicates)
-    var existing = document.getElementById('ai-result-section');
-    if (existing) existing.remove();
-
-    try {
-      var res = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentData),
-      });
-
-      // Stale-response guard: discard if the user loaded a different collection
-      if (currentSlug !== snapshotSlug) return;
-
-      var aiBtn2 = document.getElementById('ai-analysis-btn');
-      if (aiBtn2) {
-        aiBtn2.disabled = false;
-        aiBtn2.textContent = '\u2728 AI Analysis';
-      }
-
-      var respJson = null;
-      try { respJson = await res.json(); } catch (_) { /* handled below */ }
-
-      var section = document.createElement('div');
-      section.id = 'ai-result-section';
-      section.className = 'ai-result-card';
-
-      if (res.status === 429 || (respJson && respJson.error === 'free_tier_rate_limited')) {
-        // Free-tier rate limit — exact message required by spec
-        section.innerHTML =
-          '<div class="ai-result-rate-limit">' +
-          '<h3>Your free AI limit has been reached</h3>' +
-          '<p>You have reached your free AI usage limit. Please try again later.</p>' +
-          '</div>';
-
-      } else if (!res.ok || !respJson || typeof respJson.analysis !== 'string') {
-        // analysis_unavailable or other server error — show safe generic message
-        var headerEl = document.createElement('div');
-        headerEl.className = 'ai-result-header';
-        var titleSpan = document.createElement('span');
-        titleSpan.textContent = '\u2728 AI Analysis';
-        headerEl.appendChild(titleSpan);
-        section.appendChild(headerEl);
-
-        var errEl = document.createElement('div');
-        errEl.className = 'ai-result-error';
-        errEl.textContent = 'AI analysis is temporarily unavailable. Please try again later.';
-        section.appendChild(errEl);
-
-      } else {
-        // Success — build header with copy button, then render formatted body
-        var analysisText = respJson.analysis;
-
-        var headerEl2 = document.createElement('div');
-        headerEl2.className = 'ai-result-header';
-
-        var titleSpan2 = document.createElement('span');
-        titleSpan2.textContent = '\u2728 AI Analysis';
-        headerEl2.appendChild(titleSpan2);
-
-        // Copy button — copies plain text (no ** markers), never triggers AI
-        var copyAiBtn = document.createElement('button');
-        copyAiBtn.className = 'ai-result-copy-btn';
-        copyAiBtn.type = 'button';
-        copyAiBtn.setAttribute('aria-label', 'Copy analysis to clipboard');
-        copyAiBtn.innerHTML =
-          '<svg width="11" height="11" viewBox="0 0 13 13" fill="none" aria-hidden="true">' +
-          '<rect x="4.5" y="4.5" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/>' +
-          '<path d="M3 8.5H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>' +
-          '</svg>Copy';
-        copyAiBtn.addEventListener('click', function (e) {
-          e.stopPropagation();
-          var plain = stripMarkdown(analysisText);
-          function onAiCopied() {
-            copyAiBtn.textContent = 'Copied \u2713';
-            copyAiBtn.classList.add('copied');
-            setTimeout(function () {
-              copyAiBtn.innerHTML =
-                '<svg width="11" height="11" viewBox="0 0 13 13" fill="none" aria-hidden="true">' +
-                '<rect x="4.5" y="4.5" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/>' +
-                '<path d="M3 8.5H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>' +
-                '</svg>Copy';
-              copyAiBtn.classList.remove('copied');
-            }, 2000);
-          }
-          navigator.clipboard.writeText(plain).then(onAiCopied).catch(function () {
-            var ta = document.createElement('textarea');
-            ta.value = plain; ta.style.position = 'fixed'; ta.style.opacity = '0';
-            document.body.appendChild(ta); ta.select(); document.execCommand('copy');
-            document.body.removeChild(ta); onAiCopied();
-          });
-        });
-        headerEl2.appendChild(copyAiBtn);
-        section.appendChild(headerEl2);
-
-        // Formatted body — no innerHTML for model text
-        section.appendChild(renderAiMarkdown(analysisText));
-      }
-
-      // Insert the result card directly after the AI Analysis button row.
-      // Any previous card was already removed at the top of this function.
-      var aiRow = panel.querySelector('.ai-analysis-btn-row');
-      if (aiRow) {
-        aiRow.insertAdjacentElement('afterend', section);
-      }
-
-    } catch (_err) {
-      // Guard against stale response being shown after collection switch
-      if (currentSlug !== snapshotSlug) return;
-
-      var aiBtn3 = document.getElementById('ai-analysis-btn');
-      if (aiBtn3) {
-        aiBtn3.disabled = false;
-        aiBtn3.textContent = '\u2728 AI Analysis';
-      }
-
-      var errSection = document.createElement('div');
-      errSection.id = 'ai-result-section';
-      errSection.className = 'ai-result-card';
-
-      var errHeader = document.createElement('div');
-      errHeader.className = 'ai-result-header';
-      var errTitle = document.createElement('span');
-      errTitle.textContent = '\u2728 AI Analysis';
-      errHeader.appendChild(errTitle);
-      errSection.appendChild(errHeader);
-
-      var errMsg = document.createElement('div');
-      errMsg.className = 'ai-result-error';
-      errMsg.textContent = 'Network error. Please check your connection and try again.';
-      errSection.appendChild(errMsg);
-
-      // Any previous card was already removed at the top of this function.
-      var aiRow2 = panel.querySelector('.ai-analysis-btn-row');
-      if (aiRow2) {
-        aiRow2.insertAdjacentElement('afterend', errSection);
-      }
-    } finally {
-      aiAnalysisPending = false;
-    }
-  }
-
   // Delegated click handler for panel buttons
   panel.addEventListener('click', function (e) {
-    // AI Analysis button
-    if (e.target.closest('#ai-analysis-btn')) {
-      runAiAnalysis();
-      return;
-    }
-
     // Copy Link button (rendered inside collection-header)
     if (e.target.closest('#copy-link-btn')) {
       handleCopyLink();
