@@ -4,7 +4,10 @@
     "title": "NFT Data",
     "version": "1.0.0",
     "description": "OpenSea Agent Tool that provides structured NFT collection and market data for AI agents.",
-    "x-guidance": "POST /api/get-collection-data with a JSON body containing a 'collection' field set to an OpenSea collection slug (e.g. 'basedpunks'). Requires x402 USDC payment on Base (0.002 USDC per request). Returns structured collection metadata, floor price, volume, sales, and owner data sourced from the OpenSea API v2."
+    "x-guidance": "POST /api/get-collection-data with a JSON body containing a 'collection' field set to an OpenSea collection slug (e.g. 'basedpunks'). Requires x402 USDC payment on Base (0.002 USDC per request). Returns structured collection metadata, floor price, volume, sales, and owner data sourced from the OpenSea API v2.",
+    "contact": {
+      "email": "hi@nftdata.app"
+    }
   },
   "paths": {
     "/api/get-collection-data": {
@@ -34,7 +37,7 @@
                 "properties": {
                   "collection": {
                     "type": "string",
-                    "description": "OpenSea collection slug (e.g. 'doodles-official'). The slug is the unique identifier visible in the collection's OpenSea URL.",
+                    "description": "OpenSea collection slug (e.g. 'azuki'). The slug is the unique identifier visible in the collection's OpenSea URL.",
                     "minLength": 1,
                     "pattern": "^[a-z0-9][a-z0-9_-]*$"
                   }
@@ -42,7 +45,7 @@
                 "required": ["collection"]
               },
               "example": {
-                "collection": "doodles-official"
+                "collection": "azuki"
               }
             }
           }
@@ -215,6 +218,25 @@
               "Retry-After": {
                 "schema": { "type": "string" },
                 "description": "Seconds to wait before retrying."
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "get_openapi_spec",
+        "summary": "OpenAPI specification",
+        "description": "Returns this OpenAPI 3.1.0 specification. No payment required.",
+        "tags": ["Meta"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OpenAPI 3.1.0 specification document.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
               }
             }
           }
