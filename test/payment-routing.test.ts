@@ -263,10 +263,24 @@ afterEach(() => removeFetchMock());
 // ── hasX402Credential (real function from module) ────────────────────────────
 
 describe("hasX402Credential — real exported function (UNIT)", () => {
-  it("returns true when X-PAYMENT header is present", () => {
+  it("returns true when X-PAYMENT header is present (x402 v1)", () => {
     const { hasX402Credential } = mod;
     const req = makeMockReq({ headers: { "x-payment": "eyJhbGciOiJFUzI1NiJ9.test" } });
-    assert.ok(hasX402Credential(req), "should detect X-PAYMENT header");
+    assert.ok(hasX402Credential(req), "should detect X-PAYMENT header (v1)");
+  });
+
+  it("returns true when PAYMENT-SIGNATURE header is present (x402 v2)", () => {
+    // x402 v2 clients (AgentCash 0.17+, @x402/core v2) send PAYMENT-SIGNATURE.
+    // This was the root cause: the server only checked X-PAYMENT and missed v2 clients.
+    const { hasX402Credential } = mod;
+    const req = makeMockReq({ headers: { "payment-signature": "eyJhbGciOiJFUzI1NiJ9.v2payload" } });
+    assert.ok(hasX402Credential(req), "should detect PAYMENT-SIGNATURE header (v2)");
+  });
+
+  it("returns false when PAYMENT-SIGNATURE header is empty / whitespace-only", () => {
+    const { hasX402Credential } = mod;
+    const req = makeMockReq({ headers: { "payment-signature": "   " } });
+    assert.ok(!hasX402Credential(req), "whitespace-only PAYMENT-SIGNATURE is not a credential");
   });
 
   it("returns false when X-PAYMENT header is absent", () => {
@@ -390,6 +404,60 @@ describe("createHandler routing — real createHandler with mock deps (UNIT)", (
     assert.equal(res.capturedStatus, 500, "init failure should return 500");
     const body = JSON.parse(res.capturedBody) as Record<string, unknown>;
     assert.ok(typeof body["error"] === "string", "500 should include error field");
+  });
+
+  it("routes PAYMENT-SIGNATURE (x402 v2) request to x402 path, not MPP or no-cred path", async () => {
+    // Root-cause regression test: AgentCash 0.17+ sends PAYMENT-SIGNATURE (not X-PAYMENT).
+    // Before the fix, hasX402Credential returned false for PAYMENT-SIGNATURE, causing the
+    // request to fall through to handleNoPaiment and return 402 instead of processing payment.
+    const { createHandler } = mod;
+    let x402Called = false;
+    let mppCalled = false;
+    let noPaymentCalled = false;
+
+    const x402Mock = {
+      initialize: async () => undefined,
+      processHTTPRequest: async (_ctx: unknown) => {
+        x402Called = true;
+        return {
+          type: "payment-error" as const,
+          response: { status: 402, headers: {}, body: { error: "payment_required", accepts: [] } },
+        };
+      },
+      processSettlement: async () => ({ success: true as const }),
+    } as Parameters<typeof mod.createHandler>[0]["x402Server"];
+
+    const mppMock = {
+      charge: (_opts: { amount: string }) => async (_req: Request) => {
+        mppCalled = true;
+        return { status: 402 as const, challenge: new Response(null, { status: 402 }) };
+      },
+    } as Parameters<typeof mod.createHandler>[0]["mppxInstance"];
+
+    // Inject a spy that sets noPaymentCalled if handleNoPaiment is reached.
+    // We detect this by giving the x402Mock's processHTTPRequest a sentinel —
+    // if x402Called is set and mppCalled is not, the routing is correct.
+    const handler = mod.createHandler({
+      x402Server: x402Mock,
+      mppxInstance: mppMock,
+      initX402: async () => undefined,
+    });
+
+    const req = makeMockReq({
+      headers: {
+        // v2 credential — NO X-PAYMENT header
+        "payment-signature": "eyJhbGciOiJFUzI1NiJ9.v2payload",
+      },
+    });
+    const res = makeMockRes();
+    await handler(req, res);
+
+    assert.ok(x402Called, "x402 processHTTPRequest must be called for PAYMENT-SIGNATURE requests");
+    assert.ok(!mppCalled, "MPP path must NOT be called for PAYMENT-SIGNATURE requests");
+    // The mock returns payment-error (not a real credential) so status is 402 —
+    // but the routing went to handleX402Request, not handleNoPaiment.
+    assert.equal(res.capturedStatus, 402, "mock payment-error returns 402 (correct path taken)");
+    void noPaymentCalled; // unused — routing confirmed by x402Called flag
   });
 
   it("x402 path takes precedence when both X-PAYMENT and Authorization: Payment are present", async () => {

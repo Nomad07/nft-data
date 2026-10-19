@@ -12,7 +12,7 @@
  *   - Settler:   PayAI x402 facilitator
  *
  * Header routing (mutually exclusive — one protocol per request):
- *   - X-PAYMENT present                            → x402 path
+ *   - X-PAYMENT or PAYMENT-SIGNATURE present       → x402 path (v1 and v2)
  *   - Authorization/Payment-Authorization present  → MPP path
  *   - Neither present                              → 402 with both challenges
  *
@@ -187,11 +187,21 @@ const mppx = Mppx.create({
 
 /**
  * Returns true when the request carries an x402 payment credential.
- * x402 v2 places the payment in the X-PAYMENT header.
+ *
+ * Header names by protocol version:
+ *   x402 v1: X-PAYMENT          (legacy header, used by v1 clients)
+ *   x402 v2: PAYMENT-SIGNATURE  (used by AgentCash 0.17+, @x402/core v2 clients)
+ *
+ * Both headers are checked so that either version routes to handleX402Request.
+ * The underlying x402HTTPResourceServer.extractPayment() reads PAYMENT-SIGNATURE
+ * natively and handles both versions internally — no change to verification or
+ * settlement is required.
  */
 export function hasX402Credential(req: IncomingMessage): boolean {
-  const val = req.headers["x-payment"];
-  return typeof val === "string" && val.trim().length > 0;
+  const xPayment = req.headers["x-payment"];
+  const paymentSig = req.headers["payment-signature"];
+  return (typeof xPayment === "string" && xPayment.trim().length > 0) ||
+         (typeof paymentSig === "string" && paymentSig.trim().length > 0);
 }
 
 /**
@@ -565,6 +575,28 @@ export async function handleNoPaiment(
     // Route not gated — should not happen in practice, but handle gracefully.
     const dataRes = await invokeDataLogicFromBuffer(rawBodyBuf);
     await sendWebResponse(dataRes, res);
+    return;
+  } else if (processResult.type === "payment-verified") {
+    // A payment credential was processed by the x402 SDK inside handleNoPaiment.
+    //
+    // This branch is unreachable in normal operation: hasX402Credential() now
+    // intercepts both X-PAYMENT and PAYMENT-SIGNATURE before reaching here.
+    //
+    // Settlement note: ExactEvmScheme uses the "authorization" payment flow
+    // (settleBeforeHandler: false, confirmed from SDK source). Under normal
+    // operation processHTTPRequest does NOT settle before returning payment-verified.
+    // However, if a client requests the "upfront" flow (settleBeforeHandler: true),
+    // the SDK settles inside processHTTPRequest before returning this result, and
+    // that settlement cannot be undone by this 500 response. Returning 500 here
+    // is correct — it prevents duplicate settlement by not calling processSettlement
+    // a second time — but it does not guarantee the upfront-flow settlement was not
+    // already completed inside the SDK. This is documented, not hidden.
+    //
+    // The right fix is always to ensure routing never reaches this path with a
+    // valid credential, which the hasX402Credential update achieves.
+    res.statusCode = 500;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({ error: "Internal routing error." }));
     return;
   }
 
