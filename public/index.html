@@ -409,27 +409,33 @@
       text-transform: uppercase;
     }
 
+    /* contract address: full-width row, copy button on its own row below */
     .contract-address-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 6px;
+      display: block;
+      width: 100%;
     }
 
     .contract-address {
+      display: block;
+      width: 100%;
       font-family: 'JetBrains Mono', Menlo, monospace;
       font-size: 12px;
       color: var(--ink-2);
       word-break: break-all;
       overflow-wrap: break-word;
       line-height: 1.6;
-      flex: 1;
-      min-width: 0;
       letter-spacing: 0.01em;
+    }
+
+    .contract-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
     }
 
     .addr-copy-btn {
       flex-shrink: 0;
-      margin-top: 3px;
       background: none;
       border: none;
       padding: 3px 5px;
@@ -578,6 +584,68 @@
       text-transform: none;
       font-family: 'DM Sans', sans-serif;
       opacity: 0.65;
+    }
+
+    /* ── Intro strip ── */
+    .intro-strip {
+      background: var(--surface);
+      border: 1px solid var(--border-raised);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .intro-strip-body {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .intro-strip-body strong {
+      color: var(--ink-2);
+      font-weight: 600;
+    }
+
+    .intro-strip-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .intro-tag {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--subtle);
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+
+    .intro-strip-price {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .price-badge {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .price-note {
+      font-size: 12px;
+      color: var(--subtle);
+      opacity: 0.85;
     }
 
     /* ── Footer ── */
@@ -752,6 +820,27 @@
     </div>
   </section>
 
+  <!-- Intro: what NFT Data provides -->
+  <section aria-label="About NFT Data">
+    <div class="intro-strip">
+      <p class="intro-strip-body">
+        <strong>NFT Data</strong> provides structured OpenSea collection and market data for AI agents.
+        Query any collection to get floor price, trading volume, sales activity, total supply, and unique owners in a single call.
+      </p>
+      <div class="intro-strip-tags">
+        <span class="intro-tag">Floor price</span>
+        <span class="intro-tag">Trading volume</span>
+        <span class="intro-tag">Sales activity</span>
+        <span class="intro-tag">Total supply</span>
+        <span class="intro-tag">Unique owners</span>
+      </div>
+      <div class="intro-strip-price">
+        <span class="price-badge">$0.002 per request</span>
+        <span class="price-note">Paid via x402 on Base mainnet &middot; <a href="/docs">API docs</a></span>
+      </div>
+    </div>
+  </section>
+
   <!-- Results / Empty state -->
   <section id="results-area" aria-label="Collection data" aria-live="polite">
     <div class="empty-state" id="empty-state">
@@ -762,7 +851,7 @@
         </svg>
       </div>
       <h2>No collection loaded</h2>
-      <p>Enter an OpenSea collection slug above to retrieve live market data.</p>
+      <p>Search for an OpenSea collection to explore its market data.</p>
     </div>
 
     <div id="data-panel" hidden>
@@ -783,7 +872,8 @@
   </div>
   <nav class="footer-links" aria-label="Tool links">
     <a href="https://opensea.io/tools/erc8257/base/778" target="_blank" rel="noopener noreferrer">OpenSea Tool #778</a>
-    <a href="/api/get-collection-data" target="_blank" rel="noopener noreferrer">API</a>
+    <a href="/docs">API Docs</a>
+    <a href="/openapi.json" target="_blank" rel="noopener noreferrer">OpenAPI</a>
     <a href="/.well-known/ai-tool/nft-data.json" target="_blank" rel="noopener noreferrer">Manifest</a>
   </nav>
 </footer>
@@ -901,18 +991,24 @@
     var contracts = Array.isArray(d.contracts) && d.contracts.length > 0 ? d.contracts : [];
 
     var contractsHtml = contracts.map(function (c) {
-      return [
-        '<div class="contract-card">',
-        '  <div class="contract-address-row">',
-        '    <div class="contract-address mono">' + escHtml(c.address || '\u2014') + '</div>',
-        c.address ? '    <button class="addr-copy-btn" type="button" aria-label="Copy address" data-addr="' + escHtml(c.address) + '">' +
+      var copyBtn = c.address
+        ? '<button class="addr-copy-btn" type="button" aria-label="Copy address" data-addr="' + escHtml(c.address) + '">' +
           '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">' +
           '<rect x="4.5" y="4.5" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/>' +
           '<path d="M3 8.5H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>' +
           '</svg>' +
-          '</button>' : '',
+          '</button>'
+        : '';
+      var chainLabel = c.chain ? 'Chain: ' + escHtml(c.chain) : '\u2014';
+      return [
+        '<div class="contract-card">',
+        '  <div class="contract-address-row">',
+        '    <div class="contract-address mono">' + escHtml(c.address || '\u2014') + '</div>',
         '  </div>',
-        '  <div class="contract-chain">' + escHtml(c.chain || '\u2014') + '</div>',
+        '  <div class="contract-meta-row">',
+        '    <span class="contract-chain">' + chainLabel + '</span>',
+        copyBtn,
+        '  </div>',
         '</div>',
       ].join('');
     }).join('');

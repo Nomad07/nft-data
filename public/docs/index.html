@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Docs - NFT Data</title>
+  <meta name="description" content="NFT Data API documentation. POST endpoint for structured OpenSea collection and market data. $0.002 per request via x402 on Base mainnet." />
+  <link rel="canonical" href="https://www.nftdata.app/docs" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:              #0a1628;
+      --bg-mid:          #0d1d35;
+      --surface:         #111f36;
+      --surface-raised:  #162540;
+      --surface-muted:   #192b45;
+      --ink:             #f0f4fc;
+      --ink-2:           #d8e6f5;
+      --muted:           #b8cce0;
+      --subtle:          #7a93ae;
+      --border:          rgba(255,255,255,0.09);
+      --border-raised:   rgba(255,255,255,0.14);
+      --accent:          #6ea8d8;
+      --accent-hover:    #93beea;
+      --accent-dim:      rgba(110,168,216,0.15);
+      --success:         #6fcf97;
+      --danger:          #e05c6a;
+      --danger-surface:  rgba(224,92,106,0.09);
+      --danger-border:   rgba(224,92,106,0.28);
+      --warn-surface:    rgba(245,180,60,0.08);
+      --warn-border:     rgba(245,180,60,0.22);
+      --warn:            #f5b43c;
+      --radius:          14px;
+      --radius-sm:       9px;
+      --radius-xs:       5px;
+      --shadow-card:     0 1px 3px rgba(0,0,0,0.35), 0 0 0 1px var(--border);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      background-image: linear-gradient(160deg, #0a1628 0%, #0d1d35 55%, #0f2440 100%);
+      background-attachment: fixed;
+      color: var(--ink);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+    .display { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.03em; }
+    .mono    { font-family: 'JetBrains Mono', Menlo, monospace; }
+
+    /* ── Layout ── */
+    .page {
+      flex: 1;
+      width: 100%;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 52px 20px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    @media (max-width: 480px) {
+      .page { padding: 28px 14px 40px; gap: 28px; }
+    }
+
+    /* ── Header ── */
+    .doc-header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .doc-breadcrumb {
+      font-size: 12px;
+      color: var(--subtle);
+      margin-bottom: 4px;
+    }
+
+    .doc-breadcrumb a { color: var(--subtle); }
+    .doc-breadcrumb a:hover { color: var(--accent); }
+
+    .doc-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.1;
+      letter-spacing: -0.035em;
+    }
+
+    .doc-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 560px;
+    }
+
+    /* ── Section ── */
+    .doc-section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .section-heading {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border-raised);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      box-shadow: var(--shadow-card);
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 16px 14px; }
+    }
+
+    /* ── Overview card ── */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 520px) {
+      .overview-grid { grid-template-columns: 1fr; gap: 10px; }
+    }
+
+    .overview-item {}
+
+    .ov-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .ov-value {
+      font-size: 14px;
+      color: var(--ink-2);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .ov-value.price {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    /* ── Endpoint bar ── */
+    .endpoint-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border-raised);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      flex-wrap: wrap;
+    }
+
+    .method-badge {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 11px;
+      font-weight: 500;
+      background: rgba(110,168,216,0.18);
+      color: var(--accent);
+      border: 1px solid rgba(110,168,216,0.25);
+      border-radius: 4px;
+      padding: 3px 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .endpoint-url {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 13px;
+      color: var(--ink-2);
+      word-break: break-all;
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* ── Description text ── */
+    .doc-text {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .doc-text strong { color: var(--ink-2); font-weight: 600; }
+    .doc-text code {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 12.5px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--ink-2);
+    }
+
+    /* ── Parameters / fields table ── */
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    .param-table thead th {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 0 10px 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .param-table tbody tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .param-table tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .param-table tbody td {
+      padding: 10px 10px 10px 0;
+      vertical-align: top;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .param-table tbody td:first-child {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 12.5px;
+      color: var(--ink-2);
+      white-space: nowrap;
+      padding-right: 14px;
+    }
+
+    .param-table .badge-req {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: #e05c6a;
+      background: rgba(224,92,106,0.1);
+      border: 1px solid rgba(224,92,106,0.22);
+      border-radius: 3px;
+      padding: 1px 5px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .param-table .badge-opt {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: var(--subtle);
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .param-type {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 11.5px;
+      color: var(--subtle);
+      white-space: nowrap;
+    }
+
+    /* ── Code block ── */
+    .code-block {
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      overflow-x: auto;
+    }
+
+    .code-block pre {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 12.5px;
+      color: var(--ink-2);
+      line-height: 1.65;
+      white-space: pre;
+      margin: 0;
+    }
+
+    .code-block-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    /* ── Response status badges ── */
+    .status-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .status-item:last-child { border-bottom: none; }
+
+    .status-code {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 36px;
+      flex-shrink: 0;
+    }
+
+    .status-code.ok   { color: var(--success); }
+    .status-code.pay  { color: var(--warn); }
+    .status-code.err  { color: var(--danger); }
+
+    .status-desc {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .status-desc strong { color: var(--ink-2); font-weight: 600; }
+    .status-desc code {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 12px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      color: var(--ink-2);
+    }
+
+    /* ── Payment note ── */
+    .payment-note {
+      background: var(--warn-surface);
+      border: 1px solid var(--warn-border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .payment-note strong { color: var(--warn); font-weight: 600; }
+
+    /* ── Footer ── */
+    footer {
+      padding: 28px 20px 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .footer-top-row {
+      width: 100%;
+      max-width: 760px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-left {
+      font-size: 11px;
+      color: var(--subtle);
+      text-align: left;
+      white-space: nowrap;
+      opacity: 0.8;
+    }
+
+    .footer-left .heart { color: #e05c6a; }
+
+    .footer-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      text-align: center;
+      opacity: 0.65;
+    }
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .footer-right a {
+      font-size: 12px;
+      color: var(--subtle);
+      text-decoration: none;
+      transition: color 0.15s;
+      opacity: 0.8;
+    }
+
+    .footer-right a:hover { color: var(--accent); opacity: 1; text-decoration: none; }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      justify-content: center;
+    }
+
+    .footer-links a {
+      font-size: 12px;
+      color: var(--subtle);
+      transition: color 0.15s;
+      opacity: 0.75;
+    }
+
+    .footer-links a:hover { color: var(--accent); opacity: 1; text-decoration: none; }
+
+    @media (max-width: 480px) {
+      .footer-top-row { grid-template-columns: 1fr; justify-items: center; }
+      .footer-left { text-align: center; }
+      .footer-right { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="page">
+
+  <!-- Header -->
+  <header class="doc-header">
+    <div class="doc-breadcrumb"><a href="/">NFT Data</a> / API Docs</div>
+    <h1 class="doc-title display">API Documentation</h1>
+    <p class="doc-subtitle">
+      NFT Data provides structured OpenSea collection and market data for AI agents.
+      A single paid POST request returns floor price, trading volume, sales activity, supply, and ownership data.
+    </p>
+  </header>
+
+  <!-- Overview -->
+  <section class="doc-section">
+    <h2 class="section-heading">Overview</h2>
+    <div class="card">
+      <div class="overview-grid">
+        <div class="overview-item">
+          <div class="ov-label">Price</div>
+          <div class="ov-value price">$0.002 per request</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label">Payment</div>
+          <div class="ov-value">x402 on Base mainnet (USDC)</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label">Data source</div>
+          <div class="ov-value">OpenSea API v2</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label">Format</div>
+          <div class="ov-value">JSON over HTTPS</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Endpoint -->
+  <section class="doc-section">
+    <h2 class="section-heading">Endpoint</h2>
+    <div class="endpoint-bar">
+      <span class="method-badge">POST</span>
+      <span class="endpoint-url">https://www.nftdata.app/api/get-collection-data</span>
+    </div>
+    <p class="doc-text">
+      The endpoint requires a valid x402 payment header on every request.
+      Unauthenticated calls return <strong>402 Payment Required</strong> with challenge headers for the x402 protocol.
+      Pass the result of resolving the x402 challenge back as an <code>X-PAYMENT</code> header.
+    </p>
+  </section>
+
+  <!-- Payment -->
+  <section class="doc-section">
+    <h2 class="section-heading">Payment</h2>
+    <div class="payment-note">
+      <strong>x402 on Base mainnet.</strong>
+      Payment is <strong>0.002 USDC</strong> per request, settled on Base (chain ID 8453).
+      The server advertises payment terms in the <code>PAYMENT-REQUIRED</code> response header on a 402 response.
+      Submit the resolved payment in the <code>X-PAYMENT</code> request header on your next call.
+      Payment verification is handled by the PayAI x402 facilitator.
+    </div>
+  </section>
+
+  <!-- Request -->
+  <section class="doc-section">
+    <h2 class="section-heading">Request</h2>
+
+    <div class="card">
+      <div class="code-block-label">Headers</div>
+      <div class="code-block">
+        <pre>Content-Type: application/json
+X-PAYMENT: &lt;x402 payment token&gt;</pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="code-block-label">Body parameters</div>
+      <table class="param-table">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Required</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>collection</td>
+            <td><span class="param-type">string</span></td>
+            <td><span class="badge-req">required</span></td>
+            <td>
+              OpenSea collection slug. Lowercase alphanumeric, hyphens, and underscores only.
+              The slug is the identifier visible in the collection's OpenSea URL.
+              Example: <code>azuki</code>, <code>milady</code>, <code>basedpunks</code>.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="code-block-label">Example request</div>
+      <div class="code-block">
+        <pre>POST https://www.nftdata.app/api/get-collection-data
+Content-Type: application/json
+X-PAYMENT: &lt;x402 payment token&gt;
+
+{
+  "collection": "azuki"
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Response fields -->
+  <section class="doc-section">
+    <h2 class="section-heading">Response fields (200)</h2>
+
+    <div class="card">
+      <table class="param-table">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>name</td>
+            <td><span class="param-type">string</span></td>
+            <td>Collection display name.</td>
+          </tr>
+          <tr>
+            <td>slug</td>
+            <td><span class="param-type">string</span></td>
+            <td>Collection slug (matches the value you sent in the request).</td>
+          </tr>
+          <tr>
+            <td>contracts</td>
+            <td><span class="param-type">array</span></td>
+            <td>NFT contract addresses and their chains. Each item has <code>address</code> and <code>chain</code>.</td>
+          </tr>
+          <tr>
+            <td>floor_price</td>
+            <td><span class="param-type">number</span></td>
+            <td>Current floor price.</td>
+          </tr>
+          <tr>
+            <td>floor_price_currency</td>
+            <td><span class="param-type">string</span></td>
+            <td>Currency symbol for the floor price (e.g. <code>ETH</code>).</td>
+          </tr>
+          <tr>
+            <td>one_day_sales</td>
+            <td><span class="param-type">number</span></td>
+            <td>Number of sales in the last 24 hours.</td>
+          </tr>
+          <tr>
+            <td>one_day_volume</td>
+            <td><span class="param-type">number</span></td>
+            <td>Trading volume in the last 24 hours.</td>
+          </tr>
+          <tr>
+            <td>one_day_volume_currency</td>
+            <td><span class="param-type">string | null</span></td>
+            <td>Currency symbol for 24-hour volume.</td>
+          </tr>
+          <tr>
+            <td>seven_day_sales</td>
+            <td><span class="param-type">number | null</span></td>
+            <td>Number of sales in the last 7 days.</td>
+          </tr>
+          <tr>
+            <td>seven_day_volume</td>
+            <td><span class="param-type">number | null</span></td>
+            <td>Trading volume in the last 7 days.</td>
+          </tr>
+          <tr>
+            <td>seven_day_volume_currency</td>
+            <td><span class="param-type">string | null</span></td>
+            <td>Currency symbol for 7-day volume.</td>
+          </tr>
+          <tr>
+            <td>thirty_day_sales</td>
+            <td><span class="param-type">number | null</span></td>
+            <td>Number of sales in the last 30 days.</td>
+          </tr>
+          <tr>
+            <td>thirty_day_volume</td>
+            <td><span class="param-type">number | null</span></td>
+            <td>Trading volume in the last 30 days.</td>
+          </tr>
+          <tr>
+            <td>thirty_day_volume_currency</td>
+            <td><span class="param-type">string | null</span></td>
+            <td>Currency symbol for 30-day volume.</td>
+          </tr>
+          <tr>
+            <td>total_sales</td>
+            <td><span class="param-type">number</span></td>
+            <td>Total lifetime sales count.</td>
+          </tr>
+          <tr>
+            <td>total_volume</td>
+            <td><span class="param-type">number</span></td>
+            <td>Total lifetime trading volume.</td>
+          </tr>
+          <tr>
+            <td>total_volume_currency</td>
+            <td><span class="param-type">string | null</span></td>
+            <td>Currency symbol for total lifetime volume.</td>
+          </tr>
+          <tr>
+            <td>num_owners</td>
+            <td><span class="param-type">number</span></td>
+            <td>Current number of unique owners.</td>
+          </tr>
+          <tr>
+            <td>total_supply</td>
+            <td><span class="param-type">number | null</span></td>
+            <td>Total number of NFTs in the collection.</td>
+          </tr>
+          <tr>
+            <td>created_date</td>
+            <td><span class="param-type">string | null</span></td>
+            <td>Collection creation date (ISO 8601 format).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Example response -->
+  <section class="doc-section">
+    <h2 class="section-heading">Example response (200)</h2>
+    <div class="code-block">
+      <pre>{
+  "name": "based punks",
+  "slug": "basedpunks",
+  "contracts": [
+    {
+      "address": "0xcb28749c24af4797808364d71d71539bc01e76d4",
+      "chain": "base"
+    }
+  ],
+  "floor_price": 0.02391776,
+  "floor_price_currency": "ETH",
+  "one_day_sales": 1,
+  "one_day_volume": 0.0185,
+  "one_day_volume_currency": "ETH",
+  "seven_day_sales": 16,
+  "seven_day_volume": 0.34213836,
+  "seven_day_volume_currency": "ETH",
+  "thirty_day_sales": 217,
+  "thirty_day_volume": 1.50135021,
+  "thirty_day_volume_currency": "ETH",
+  "total_sales": 18027,
+  "total_volume": 4728.07,
+  "total_volume_currency": "ETH",
+  "num_owners": 2408,
+  "total_supply": 5000,
+  "created_date": "2024-04-05"
+}</pre>
+    </div>
+  </section>
+
+  <!-- Error responses -->
+  <section class="doc-section">
+    <h2 class="section-heading">Error responses</h2>
+    <div class="card">
+      <div class="status-row">
+        <div class="status-item">
+          <span class="status-code pay">402</span>
+          <span class="status-desc">
+            <strong>Payment Required.</strong>
+            No valid payment was supplied. The response includes a <code>PAYMENT-REQUIRED</code> header with x402 challenge terms.
+            Resolve the challenge and retry with an <code>X-PAYMENT</code> header.
+          </span>
+        </div>
+        <div class="status-item">
+          <span class="status-code err">400</span>
+          <span class="status-desc">
+            <strong>Bad Request.</strong>
+            The <code>collection</code> field is missing, empty, or contains characters other than lowercase letters, digits, hyphens, and underscores.
+            Body: <code>{"error": "..."}</code>
+          </span>
+        </div>
+        <div class="status-item">
+          <span class="status-code err">404</span>
+          <span class="status-desc">
+            <strong>Not Found.</strong>
+            No OpenSea collection exists with the given slug.
+            Body: <code>{"error": "Collection not found."}</code>
+          </span>
+        </div>
+        <div class="status-item">
+          <span class="status-code err">405</span>
+          <span class="status-desc">
+            <strong>Method Not Allowed.</strong>
+            The endpoint only accepts POST requests. GET and other methods are rejected.
+          </span>
+        </div>
+        <div class="status-item">
+          <span class="status-code err">429</span>
+          <span class="status-desc">
+            <strong>Rate Limit Exceeded.</strong>
+            The upstream OpenSea API rate limit was reached.
+            A <code>Retry-After</code> header indicates how many seconds to wait before retrying.
+          </span>
+        </div>
+        <div class="status-item">
+          <span class="status-code err">502</span>
+          <span class="status-desc">
+            <strong>Bad Gateway.</strong>
+            The upstream OpenSea API returned a server error or an authentication failure.
+            Body: <code>{"error": "The upstream OpenSea API returned an error. Please try again later."}</code>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Links -->
+  <section class="doc-section">
+    <h2 class="section-heading">Specifications</h2>
+    <div class="card">
+      <div class="status-row">
+        <div class="status-item">
+          <span class="status-desc">
+            <strong>Machine-readable OpenAPI spec:</strong>
+            <a href="/openapi.json" target="_blank" rel="noopener noreferrer">/openapi.json</a>
+            (OpenAPI 3.1.0)
+          </span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc">
+            <strong>OpenSea Tool registration:</strong>
+            <a href="https://opensea.io/tools/erc8257/base/778" target="_blank" rel="noopener noreferrer">OpenSea Tool #778</a>
+          </span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc">
+            <strong>AI tool manifest:</strong>
+            <a href="/.well-known/ai-tool/nft-data.json" target="_blank" rel="noopener noreferrer">/.well-known/ai-tool/nft-data.json</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-top-row">
+    <span class="footer-left">Made with <span class="heart">&#10084;&#65039;</span> on Mars</span>
+    <span class="footer-badge">AI Agent Tool &nbsp;&middot;&nbsp; ERC-8257 &nbsp;&middot;&nbsp; Base &nbsp;&middot;&nbsp; NFT Data</span>
+    <div class="footer-right">
+      <a href="https://github.com/Nomad07/nft-data" target="_blank" rel="noopener noreferrer" aria-label="GitHub">GitHub</a>
+      <a href="https://x.com/nomadonmars" target="_blank" rel="noopener noreferrer" aria-label="X / Twitter">X / Twitter</a>
+    </div>
+  </div>
+  <nav class="footer-links" aria-label="Tool links">
+    <a href="/">Home</a>
+    <a href="https://opensea.io/tools/erc8257/base/778" target="_blank" rel="noopener noreferrer">OpenSea Tool #778</a>
+    <a href="/openapi.json" target="_blank" rel="noopener noreferrer">OpenAPI</a>
+    <a href="/.well-known/ai-tool/nft-data.json" target="_blank" rel="noopener noreferrer">Manifest</a>
+  </nav>
+</footer>
+
+</body>
+</html>
