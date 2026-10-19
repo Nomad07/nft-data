@@ -467,9 +467,50 @@
       .footer-left { text-align: center; }
       .footer-right { justify-content: center; }
     }
+
+    /* ── Return arrow ── */
+    .return-arrow {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--subtle);
+      border-radius: var(--radius-xs);
+      transition: color 0.15s, background 0.15s;
+      z-index: 100;
+      text-decoration: none;
+    }
+
+    .return-arrow:hover {
+      color: var(--accent);
+      background: var(--accent-dim);
+      text-decoration: none;
+    }
+
+    .return-arrow:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 480px) {
+      .return-arrow { top: 10px; right: 12px; }
+    }
   </style>
 </head>
 <body>
+
+<a href="/" class="return-arrow" aria-label="Back to homepage" title="Back to homepage">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <!-- rectangular return arrow: a rounded rect path with an arrowhead -->
+    <path d="M14 4H8a4 4 0 0 0-4 4v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M4 12l-2.5-3L4 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <rect x="8" y="11" width="8" height="5" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+  </svg>
+</a>
 
 <main class="page">
 

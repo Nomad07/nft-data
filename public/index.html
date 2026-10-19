@@ -822,7 +822,7 @@
   </section>
 
   <!-- Intro: what NFT Data provides -->
-  <section aria-label="About NFT Data">
+  <section id="intro-section" aria-label="About NFT Data">
     <div class="intro-strip">
       <p class="intro-strip-body">
         <strong>NFT Data</strong> provides structured OpenSea collection and market data for AI agents.
@@ -888,6 +888,7 @@
   const status   = document.getElementById('status-msg');
   const empty    = document.getElementById('empty-state');
   const panel    = document.getElementById('data-panel');
+  const intro    = document.getElementById('intro-section');
 
   // ── State constants ──────────────────────────────────────────────────────
   // IDLE    : initial — empty state visible, panel hidden
@@ -913,11 +914,13 @@
     empty.hidden = false;
     panel.hidden = true;
     panel.innerHTML = '';
+    if (intro) intro.hidden = false;
   }
 
   function showPanel() {
     empty.hidden = true;
     panel.hidden = false;
+    if (intro) intro.hidden = true;
   }
 
   function escHtml(s) {
@@ -978,8 +981,7 @@
     var tryAgainBtn = document.getElementById('try-again-btn');
     if (tryAgainBtn) {
       tryAgainBtn.addEventListener('click', function () {
-        panel.hidden = true;
-        panel.innerHTML = '';
+        showEmpty();
         setStatus('');
         input.disabled = false;
         input.focus();
@@ -1097,6 +1099,7 @@
     empty.hidden = true;
     panel.hidden = true;
     panel.innerHTML = '';
+    if (intro) intro.hidden = true;
 
     try {
       var res = await fetch('/api/collect', {
