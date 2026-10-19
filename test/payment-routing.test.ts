@@ -235,16 +235,20 @@ describe("Startup safety (UNIT)", () => {
     }
   });
 
-  it("Mppx.create() succeeds when MPP_SECRET_KEY is a 64-char hex string", async () => {
+  it("Mppx.create() succeeds with a valid MPP_SECRET_KEY and evm method", async () => {
     const { Mppx, evm } = await import("mppx/server");
-    const methods = evm({
-      currencies: [evm.assets.base.USDC],
-      recipient: "0x344143199642e87320785823c20c2df107d17534",
-      x402: { facilitator: "https://facilitator.payai.network" },
-    });
+    const PAY_TO = "0x344143199642e87320785823c20c2df107d17534";
     assert.doesNotThrow(
-      () => Mppx.create({ realm: "www.nftdata.app", secretKey: "b".repeat(64), methods }),
-      "Mppx.create() must succeed with a valid secret key",
+      () => Mppx.create({
+        realm: "www.nftdata.app",
+        secretKey: "b".repeat(64),
+        methods: evm({
+          currencies: [evm.assets.base.USDC],
+          recipient: PAY_TO,
+          x402: { facilitator: "https://facilitator.payai.network" },
+        }),
+      }),
+      "Mppx.create() must succeed with valid key and evm method",
     );
   });
 });

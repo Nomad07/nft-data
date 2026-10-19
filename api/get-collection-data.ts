@@ -2,13 +2,16 @@
  * POST /api/get-collection-data
  *
  * Dual-protocol paid tool endpoint:
- *   - x402 v2  (ExactEvmScheme, PAYMENT-REQUIRED / X-PAYMENT headers)
- *   - MPP      (evm/charge, WWW-Authenticate: Payment / Authorization: Payment headers)
+ *   - x402 v2  (ExactEvmScheme, PAYMENT-REQUIRED / X-PAYMENT or PAYMENT-SIGNATURE headers)
+ *   - MPP      (evm/charge on Base mainnet,
+ *               WWW-Authenticate: Payment / Authorization: Payment headers)
  *
- * Both protocols:
+ * All protocols:
  *   - Price:     $0.002 USDC per successful request
- *   - Network:   Base mainnet (eip155:8453)
  *   - Recipient: PAY_TO address
+ *
+ * x402 / MPP evm:
+ *   - Network:   Base mainnet (eip155:8453), USDC 0x833589...
  *   - Settler:   PayAI x402 facilitator
  *
  * Header routing (mutually exclusive — one protocol per request):
