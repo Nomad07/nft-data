@@ -517,9 +517,10 @@
       <span class="endpoint-url">https://www.nftdata.app/api/get-collection-data</span>
     </div>
     <p class="doc-text">
-      The endpoint requires a valid x402 payment header on every request.
-      Unauthenticated calls return <strong>402 Payment Required</strong> with challenge headers for the x402 protocol.
-      Pass the result of resolving the x402 challenge back as an <code>X-PAYMENT</code> header.
+      The endpoint requires a valid x402 payment on every request.
+      Unauthenticated calls return <strong>402 Payment Required</strong> with a <code>PAYMENT-REQUIRED</code> response header
+      containing the x402 challenge terms. Resolve the challenge and retry with a <code>PAYMENT-SIGNATURE</code> request header
+      containing the signed payment. A successful settlement returns a <code>PAYMENT-RESPONSE</code> header with the settlement result.
     </p>
   </section>
 
@@ -530,8 +531,14 @@
       <strong>x402 on Base mainnet.</strong>
       Payment is <strong>0.002 USDC</strong> per request, settled on Base (chain ID 8453).
       The server advertises payment terms in the <code>PAYMENT-REQUIRED</code> response header on a 402 response.
-      Submit the resolved payment in the <code>X-PAYMENT</code> request header on your next call.
+      Submit the signed payment in the <code>PAYMENT-SIGNATURE</code> request header on your next call.
+      If the request succeeds, the server returns a <code>PAYMENT-RESPONSE</code> header with the settlement result.
       Payment verification is handled by the PayAI x402 facilitator.
+    </div>
+    <div class="payment-note" style="margin-top: 10px; background: var(--surface-muted); border-color: var(--border-raised);">
+      <strong style="color: var(--ink-2);">Settlement timing.</strong>
+      Payment settlement is attempted only after collection data has been retrieved successfully from OpenSea.
+      Requests that fail input validation (400) or encounter an upstream data error (404, 429, 502) do not reach the settlement step.
     </div>
   </section>
 
@@ -543,7 +550,7 @@
       <div class="code-block-label">Headers</div>
       <div class="code-block">
         <pre>Content-Type: application/json
-X-PAYMENT: &lt;x402 payment token&gt;</pre>
+PAYMENT-SIGNATURE: &lt;x402 payment token&gt;</pre>
       </div>
     </div>
 
@@ -578,7 +585,7 @@ X-PAYMENT: &lt;x402 payment token&gt;</pre>
       <div class="code-block">
         <pre>POST https://www.nftdata.app/api/get-collection-data
 Content-Type: application/json
-X-PAYMENT: &lt;x402 payment token&gt;
+PAYMENT-SIGNATURE: &lt;x402 payment token&gt;
 
 {
   "collection": "azuki"
@@ -624,7 +631,11 @@ X-PAYMENT: &lt;x402 payment token&gt;
           <tr>
             <td>floor_price_currency</td>
             <td><span class="param-type">string</span></td>
-            <td>Currency symbol for the floor price (e.g. <code>ETH</code>).</td>
+            <td>
+              Currency symbol for the floor price. Not always ETH -- always read this field alongside
+              <code>floor_price</code> to interpret the amount correctly.
+              Examples from live collections: <code>ETH</code>, <code>USDC</code>, <code>HYPE</code>.
+            </td>
           </tr>
           <tr>
             <td>one_day_sales</td>
@@ -750,7 +761,7 @@ X-PAYMENT: &lt;x402 payment token&gt;
           <span class="status-desc">
             <strong>Payment Required.</strong>
             No valid payment was supplied. The response includes a <code>PAYMENT-REQUIRED</code> header with x402 challenge terms.
-            Resolve the challenge and retry with an <code>X-PAYMENT</code> header.
+            Resolve the challenge and retry with a <code>PAYMENT-SIGNATURE</code> request header.
           </span>
         </div>
         <div class="status-item">
