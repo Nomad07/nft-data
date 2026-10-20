@@ -478,8 +478,12 @@
     <div class="doc-breadcrumb"><a href="/">NFT Data</a> / API Docs</div>
     <h1 class="doc-title display">API Documentation</h1>
     <p class="doc-subtitle">
-      NFT Data provides structured OpenSea collection and market data for AI agents.
-      A single paid POST request returns floor price, trading volume, sales activity, supply, and ownership data.
+      NFT Data is a pay-per-request API for AI agents that returns structured market data for any OpenSea collection.
+      Send a collection slug and get floor price, 24h/7d/30d/all-time sales and volume, total supply, unique owners,
+      contract addresses and creation date. Data is sourced from the OpenSea API and passed through as is, with
+      currencies reported in the response (ETH, USDC, etc.). Each successful request costs $0.002, payable in USDC
+      on Base mainnet using either the x402 v2 or MPP evm/charge payment protocol. No API keys or subscriptions
+      required. Registered as OpenSea Tool #778 (ERC-8257).
     </p>
   </header>
 
