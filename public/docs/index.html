@@ -66,9 +66,9 @@
     .page {
       flex: 1;
       width: 100%;
-      max-width: 760px;
+      max-width: 860px;
       margin: 0 auto;
-      padding: 52px 20px 60px;
+      padding: 52px 24px 60px;
       display: flex;
       flex-direction: column;
       gap: 36px;
@@ -401,7 +401,7 @@
 
     .footer-top-row {
       width: 100%;
-      max-width: 760px;
+      max-width: 860px;
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: center;
@@ -520,11 +520,11 @@
       <div class="overview-grid" style="margin-bottom: 14px;">
         <div class="overview-item">
           <div class="ov-label">Endpoint</div>
-          <div class="ov-value" style="font-size:13px; word-break:break-all;">POST https://www.nftdata.app/api/get-collection-data</div>
+          <div class="ov-value" style="font-size: 12.5px; font-family: 'JetBrains Mono', Menlo, monospace; word-break: break-all; color: var(--ink-2); font-weight: 400;">POST https://www.nftdata.app/api/get-collection-data</div>
         </div>
         <div class="overview-item">
           <div class="ov-label">Price</div>
-          <div class="ov-value price">$0.002 per successful request</div>
+          <div class="ov-value price" style="font-size: 14px; font-weight: 600; letter-spacing: 0;">$0.002 per successful request</div>
         </div>
       </div>
       <p class="doc-text" style="margin-bottom: 10px;">
@@ -563,10 +563,10 @@
       <span class="endpoint-url">https://www.nftdata.app/api/get-collection-data</span>
     </div>
     <p class="doc-text">
-      The endpoint requires a valid x402 payment on every request.
-      Unauthenticated calls return <strong>402 Payment Required</strong> with a <code>PAYMENT-REQUIRED</code> response header
-      containing the x402 challenge terms. Resolve the challenge and retry with a <code>PAYMENT-SIGNATURE</code> request header
-      containing the signed payment. A successful settlement returns a <code>PAYMENT-RESPONSE</code> header with the settlement result.
+      Each request requires a valid payment using one of the two supported protocols:
+      <a href="#payment-x402">x402 v2</a> or <a href="#payment-mpp">MPP evm/charge</a>.
+      Unauthenticated calls return <strong>402 Payment Required</strong>.
+      See the payment sections below for protocol-specific headers, challenge flows, and integration examples.
     </p>
   </section>
 
@@ -585,6 +585,19 @@
       <strong style="color: var(--ink-2);">Settlement timing.</strong>
       Payment settlement is attempted only after collection data has been retrieved successfully from OpenSea.
       Requests that fail input validation (400) or encounter an upstream data error (404, 429, 502) do not reach the settlement step.
+    </div>
+
+    <div class="card">
+      <div class="code-block-label">x402 v2 example request</div>
+      <div class="code-block">
+        <pre>POST https://www.nftdata.app/api/get-collection-data
+Content-Type: application/json
+PAYMENT-SIGNATURE: &lt;x402 payment token&gt;
+
+{
+  "collection": "azuki"
+}</pre>
+      </div>
     </div>
   </section>
 
@@ -689,18 +702,11 @@ PAYMENT-SIGNATURE: &lt;x402 payment token&gt;</pre>
       </table>
     </div>
 
-    <div class="card">
-      <div class="code-block-label">Example request</div>
-      <div class="code-block">
-        <pre>POST https://www.nftdata.app/api/get-collection-data
-Content-Type: application/json
-PAYMENT-SIGNATURE: &lt;x402 payment token&gt;
-
-{
-  "collection": "azuki"
-}</pre>
-      </div>
-    </div>
+    <p class="doc-text">
+      For full integration examples, see
+      <a href="#payment-x402">x402 v2 example request</a> and
+      <a href="#payment-mpp">MPP evm/charge integration steps</a> above.
+    </p>
   </section>
 
   <!-- Response fields -->
