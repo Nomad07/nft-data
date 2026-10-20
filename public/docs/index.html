@@ -495,7 +495,7 @@
         </div>
         <div class="overview-item">
           <div class="ov-label">Payment</div>
-          <div class="ov-value">x402 on Base mainnet (USDC)</div>
+          <div class="ov-value">x402 v2 or MPP evm/charge - Base mainnet (USDC)</div>
         </div>
         <div class="overview-item">
           <div class="ov-label">Data source</div>
@@ -506,6 +506,52 @@
           <div class="ov-value">JSON over HTTPS</div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Quick Start -->
+  <section class="doc-section" id="quick-start">
+    <h2 class="section-heading">Quick start for AI agents</h2>
+    <div class="card">
+      <p class="doc-text" style="margin-bottom: 14px;">
+        NFT Data provides structured OpenSea NFT collection and market data for AI agents.
+        A single paid POST request returns floor price, trading volume, sales activity, supply, ownership count, and creation date for any OpenSea collection.
+      </p>
+      <div class="overview-grid" style="margin-bottom: 14px;">
+        <div class="overview-item">
+          <div class="ov-label">Endpoint</div>
+          <div class="ov-value" style="font-size:13px; word-break:break-all;">POST https://www.nftdata.app/api/get-collection-data</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label">Price</div>
+          <div class="ov-value price">$0.002 per successful request</div>
+        </div>
+      </div>
+      <p class="doc-text" style="margin-bottom: 10px;">
+        Requests require a compatible payment client. Two payment protocols are supported:
+      </p>
+      <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px;">
+        <li class="doc-text">
+          <strong>x402 v2</strong> - send a signed <code>PAYMENT-SIGNATURE</code> header.
+          See <a href="#payment-x402">x402 payment details</a> below.
+        </li>
+        <li class="doc-text">
+          <strong>MPP evm/charge</strong> - send an <code>Authorization: Payment</code> header.
+          See <a href="#payment-mpp">MPP payment details</a> below.
+        </li>
+      </ul>
+      <p class="doc-text" style="margin-top: 14px;">
+        OpenAPI specification: <a href="https://www.nftdata.app/openapi.json" target="_blank" rel="noopener noreferrer">https://www.nftdata.app/openapi.json</a>
+      </p>
+      <p class="doc-text" style="margin-top: 10px;">
+        <strong>Agent integrations and usage examples:</strong>
+        the <a href="https://www.x402scan.com/server/0ee65334-846e-433a-bc38-55a37ffe841a" target="_blank" rel="noopener noreferrer">x402scan server page</a>
+        provides additional integration instructions and usage examples for compatible agent clients and tools.
+      </p>
+      <p class="doc-text" style="margin-top: 10px;">
+        <a href="https://tryponcho.com/m/nftdata.app" target="_blank" rel="noopener noreferrer"><strong>Try NFT Data with Poncho</strong></a> -
+        open NFT Data in Poncho to try the API.
+      </p>
     </div>
   </section>
 
@@ -524,9 +570,9 @@
     </p>
   </section>
 
-  <!-- Payment -->
-  <section class="doc-section">
-    <h2 class="section-heading">Payment</h2>
+  <!-- Payment: x402 -->
+  <section class="doc-section" id="payment-x402">
+    <h2 class="section-heading">Payment: x402 v2</h2>
     <div class="payment-note">
       <strong>x402 on Base mainnet.</strong>
       Payment is <strong>0.002 USDC</strong> per request, settled on Base (chain ID 8453).
@@ -540,6 +586,69 @@
       Payment settlement is attempted only after collection data has been retrieved successfully from OpenSea.
       Requests that fail input validation (400) or encounter an upstream data error (404, 429, 502) do not reach the settlement step.
     </div>
+  </section>
+
+  <!-- Payment: MPP -->
+  <section class="doc-section" id="payment-mpp">
+    <h2 class="section-heading">Payment: MPP evm/charge</h2>
+    <div class="payment-note">
+      <strong>MPP evm/charge on Base mainnet.</strong>
+      Payment is <strong>0.002 USDC</strong> per request, settled on Base (chain ID 8453).
+      MPP (Machine Payments Protocol) is a protocol for API-level stablecoin payments.
+      The server uses the <code>evm/charge</code> method with Base mainnet USDC.
+    </div>
+    <div class="payment-note" style="margin-top: 10px; background: var(--surface-muted); border-color: var(--border-raised);">
+      <strong style="color: var(--ink-2);">Settlement timing.</strong>
+      As with x402, payment settlement is attempted only after collection data has been retrieved successfully.
+      Requests that fail input validation or encounter an upstream data error do not reach the settlement step.
+    </div>
+
+    <div class="card">
+      <div class="code-block-label">1. Unauthenticated request - server responds with 402 and a challenge</div>
+      <div class="code-block">
+        <pre>HTTP/1.1 402 Payment Required
+WWW-Authenticate: Payment method="evm", intent="charge",
+    realm="www.nftdata.app", request="&lt;base64url-encoded challenge&gt;"</pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="code-block-label">2. Client resolves the challenge and retries with the credential</div>
+      <div class="code-block">
+        <pre>POST https://www.nftdata.app/api/get-collection-data
+Content-Type: application/json
+Authorization: Payment &lt;mpp evm credential&gt;
+
+{
+  "collection": "azuki"
+}</pre>
+      </div>
+      <p class="doc-text" style="margin-top: 12px;">
+        The credential is a signed EIP-3009 token authorization bound to the challenge.
+        Compatible MPP clients handle challenge resolution and credential construction automatically.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="code-block-label">3. Server settles and returns the receipt</div>
+      <div class="code-block">
+        <pre>HTTP/1.1 200 OK
+Content-Type: application/json
+MPP-Receipt: &lt;receipt token&gt;
+
+{ ... collection data ... }</pre>
+      </div>
+    </div>
+
+    <p class="doc-text">
+      The server also accepts the credential in a <code>Payment-Authorization: Payment &lt;credential&gt;</code> header
+      when a forwarding proxy preserves the application <code>Authorization</code> header separately.
+      MPP and x402 credentials are mutually exclusive per request - do not send both.
+      For full protocol details, see the
+      <a href="https://mpp.dev/payment-methods/evm/charge" target="_blank" rel="noopener noreferrer">MPP evm/charge documentation</a>
+      and the
+      <a href="https://mpp.dev/protocol/http-402" target="_blank" rel="noopener noreferrer">MPP HTTP 402 protocol reference</a>.
+    </p>
   </section>
 
   <!-- Request -->
