@@ -468,56 +468,9 @@
       .footer-right { justify-content: center; }
     }
 
-    /* ── Return-to-home button ── */
-    .return-arrow {
-      position: fixed;
-      top: calc(16px + env(safe-area-inset-top, 0px));
-      right: calc(20px + env(safe-area-inset-right, 0px));
-      width: 44px;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--surface-raised);
-      border: 1px solid var(--border-raised);
-      border-radius: 10px;
-      color: var(--muted);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-      transition: color 0.15s, background 0.15s, border-color 0.15s, box-shadow 0.15s;
-      z-index: 100;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .return-arrow:hover {
-      color: var(--accent);
-      background: var(--surface-muted);
-      border-color: rgba(110,168,216,0.35);
-      box-shadow: 0 2px 8px rgba(110,168,216,0.15);
-      text-decoration: none;
-    }
-
-    .return-arrow:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-      color: var(--accent);
-    }
-
-    @media (max-width: 480px) {
-      .return-arrow {
-        top: calc(14px + env(safe-area-inset-top, 0px));
-        right: calc(14px + env(safe-area-inset-right, 0px));
-      }
-    }
   </style>
 </head>
 <body>
-
-<a href="/" class="return-arrow" aria-label="Back to homepage" title="Back to homepage">
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-</a>
 
 <main class="page">
 
