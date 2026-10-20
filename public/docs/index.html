@@ -106,7 +106,6 @@
       font-size: 14px;
       color: var(--muted);
       line-height: 1.55;
-      max-width: 560px;
     }
 
     /* ── Section ── */
@@ -517,7 +516,7 @@
         NFT Data provides structured OpenSea NFT collection and market data for AI agents.
         A single paid POST request returns floor price, trading volume, sales activity, supply, ownership count, and creation date for any OpenSea collection.
       </p>
-      <div class="overview-grid" style="margin-bottom: 14px;">
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;">
         <div class="overview-item">
           <div class="ov-label">Endpoint</div>
           <div class="ov-value" style="font-size: 12.5px; font-family: 'JetBrains Mono', Menlo, monospace; word-break: break-all; color: var(--ink-2); font-weight: 400;">POST https://www.nftdata.app/api/get-collection-data</div>
@@ -669,11 +668,20 @@ MPP-Receipt: &lt;receipt token&gt;
     <h2 class="section-heading">Request</h2>
 
     <div class="card">
-      <div class="code-block-label">Headers</div>
+      <div class="code-block-label">Headers - x402 v2</div>
       <div class="code-block">
         <pre>Content-Type: application/json
 PAYMENT-SIGNATURE: &lt;x402 payment token&gt;</pre>
       </div>
+      <div class="code-block-label" style="margin-top: 14px;">Headers - MPP evm/charge</div>
+      <div class="code-block">
+        <pre>Content-Type: application/json
+Authorization: Payment &lt;mpp evm credential&gt;</pre>
+      </div>
+      <p class="doc-text" style="margin-top: 12px;">
+        The required payment header depends on the selected protocol.
+        See <a href="#payment-x402">x402 v2</a> and <a href="#payment-mpp">MPP evm/charge</a> for the full challenge and retry flow for each.
+      </p>
     </div>
 
     <div class="card">
@@ -875,8 +883,8 @@ PAYMENT-SIGNATURE: &lt;x402 payment token&gt;</pre>
           <span class="status-code pay">402</span>
           <span class="status-desc">
             <strong>Payment Required.</strong>
-            No valid payment was supplied. The response includes a <code>PAYMENT-REQUIRED</code> header with x402 challenge terms.
-            Resolve the challenge and retry with a <code>PAYMENT-SIGNATURE</code> request header.
+            No valid payment credential was supplied. The response initiates the payment flow for the selected protocol.
+            See <a href="#payment-x402">x402 v2</a> or <a href="#payment-mpp">MPP evm/charge</a> for the protocol-specific challenge headers and retry steps.
           </span>
         </div>
         <div class="status-item">
