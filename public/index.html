@@ -1042,7 +1042,7 @@
       renderStat('Created',       fmtDate(d.created_date), null),
       '</div>',
 
-      contracts.length > 0 ? '<div class="section-title"><span>Contract</span>' + (lastUpdated ? '<span class="section-title-updated">Updated ' + escHtml(lastUpdated) + '</span>' : '') + '</div>' : '',
+      contracts.length > 0 ? '<div class="section-title"><span>Contract</span>' + (lastUpdated ? '<span class="section-title-updated">Updated: ' + escHtml(lastUpdated) + '</span>' : '') + '</div>' : '',
       contractsHtml,
 
       '</div>',
@@ -1136,7 +1136,13 @@
       setStatus('');
       currentSlug = slug.trim();
       var now = new Date();
-      lastUpdated = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var dd = String(now.getDate()).padStart(2, '0');
+      var mon = months[now.getMonth()];
+      var yyyy = now.getFullYear();
+      var hh = String(now.getHours()).padStart(2, '0');
+      var mm = String(now.getMinutes()).padStart(2, '0');
+      lastUpdated = dd + ' ' + mon + ' ' + yyyy + ', ' + hh + ':' + mm;
       history.pushState(null, '', '?collection=' + encodeURIComponent(currentSlug));
       renderData(json);
 
