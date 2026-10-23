@@ -168,13 +168,15 @@ The OpenSea API supports **30 networks**. The table below lists production-teste
 | HyperEVM        | `hypurr-hyperevm`      | `0x9125e2d6827a00b0f8330d6ef7bef07730bac685`   |
 | HyperEVM        | `hypio`                | `0x63eb9d77d083ca10c304e28d5191321977fd0bfb`   |
 | HyperEVM        | `rekt-wolves-hype`     | `0x822c4f30414299e003ef39e9aba49d8f8d4445ba`   |
-| Arc             | [`akarii`](https://www.nftdata.app/?collection=akarii) | `0xbea22653119f73716905919708a612332bf98e3f`   |
+| Arc             | `akarii`               | `0xbea22653119f73716905919708a612332bf98e3f`   |
 | Ronin           | `axie-land`            | `0x8c811e3c958e190f5ec15fb376533a3398620500`   |
 | Ronin           | `moki-collection`      | `0x47b5a7c2e4f07772696bbf8c8c32fe2b9eabd550`   |
 | ApeChain        | `gimboznft`            | `0x81c9ce55e8214fd0f5181fd3d38f52fd8c33ec38`   |
 | ApeChain        | `gobs-on-ape`          | `0xbebaa24108d6a03c7331464270b95278bbbe6ff7`   |
 | Ethereum        | `azuki`                | `0xed5af388653567af2f388e6224dc7c4b3241c544`   |
 | Ethereum        | `pudgypenguins`        | `0xbd3531da5cf5857e7cfaa92426877b022e612cf8`   |
+| Solana          | `claynosaurz`          | `6mszaj17KSfVqADrQj3o4W3zoLMTykgmV37W4QadCczK` |
+| Solana          | `mad-lads`             | `J1S9H3QjnRtBbbuD4HjPV6RpRhwuk4zKbxsnCHuTgh9w` |
 
 These examples have been tested in production and are not representative of all 30 supported networks.
 
