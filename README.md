@@ -8,9 +8,9 @@ Structured NFT collection and market data for AI agents, delivered as an [ERC-82
 
 Given an OpenSea collection slug, NFT Data returns collection metadata, contract addresses, floor price, 24-hour / 7-day / 30-day / lifetime sales and volume, and owner statistics — sourced directly from OpenSea API v2.
 
-**Human users** can check any collection for free at [nftdata.app](https://nftdata.app/).
+**Human users** can check any collection for free at [nftdata.app](https://www.nftdata.app/).
 
-**AI agents** call the paid x402 endpoint programmatically:
+**AI agents** call the paid API programmatically using either x402 v2 or MPP `evm/charge`:
 
 ```
 POST https://www.nftdata.app/api/get-collection-data
@@ -27,7 +27,7 @@ POST https://www.nftdata.app/api/get-collection-data
 | Registry contract  | `0x265bb2dbfc0a8165c9a1941eb1372f349bad2cf1`   |
 | Registry page      | https://opensea.io/tools/erc8257/base/778      |
 | Action             | `get_collection_data`                          |
-| Payment            | 0.002 USDC per call via x402 v2 on Base        |
+| Payment            | $0.002 USDC per successful request via x402 v2 or MPP evm/charge on Base mainnet |
 | Manifest           | https://www.nftdata.app/.well-known/ai-tool/nft-data.json |
 
 ---
@@ -40,14 +40,24 @@ NFT Data is available as a Farcaster Mini App. Open it inside Warpcast or any Fa
 
 ---
 
+## Poncho
+
+NFT Data is also available through Poncho, providing another discovery point for AI agents to find and try the service.
+
+**Try NFT Data on Poncho:** https://tryponcho.com/m/nftdata.app
+
+---
+
 ## Public Paid API
+
+**Endpoint:** [https://www.nftdata.app/api/get-collection-data](https://www.nftdata.app/api/get-collection-data)
 
 ```
 POST https://www.nftdata.app/api/get-collection-data
 Content-Type: application/json
 ```
 
-The endpoint is protected by x402. Requests without a valid payment header receive `HTTP 402`. See [x402 payment](#x402-payment) below.
+The endpoint accepts valid payment credentials through either x402 v2 or MPP `evm/charge`. Requests without a valid payment credential receive `HTTP 402`. See [x402 Payment](#x402-payment) and [MPP Payment](#mpp-payment) below.
 
 ---
 
@@ -70,6 +80,31 @@ To call this tool from an OpenSea-compatible agent, reference it by its on-chain
 ```
 8453,0x265bb2dbfc0a8165c9a1941eb1372f349bad2cf1,778
 ```
+
+---
+
+## MPP Payment
+
+The endpoint also accepts payment via [MPP (Machine Payments Protocol)](https://mpp.dev/) using the `evm/charge` method.
+
+| Field             | Value                                                        |
+|-------------------|--------------------------------------------------------------|
+| Protocol          | MPP `evm/charge`                                            |
+| Network           | Base mainnet (`eip155:8453`)                                 |
+| Token             | USDC on Base mainnet                                         |
+| Amount            | `2000` atomic units (0.002 USDC, 6-decimal token)           |
+
+**Payment flow:**
+
+1. An initial request without a valid MPP credential receives `HTTP 402 Payment Required`. The response includes an MPP challenge in the `WWW-Authenticate` header.
+2. A compatible client resolves the challenge and retries with `Authorization: Payment <mpp evm credential>`.
+3. A successful `200` response includes the `MPP-Receipt` header confirming settlement.
+
+The endpoint also accepts `Payment-Authorization: Payment <credential>` as a fallback for proxy configurations that preserve the application `Authorization` header separately.
+
+The payment credential is bound to the challenge. MPP and x402 payment credentials are mutually exclusive for a single request -- a request may carry one or the other, not both.
+
+Settlement is attempted only after collection data has been retrieved successfully. Requests that fail input validation (`HTTP 400`) or encounter an upstream data error do not proceed to settlement.
 
 ---
 
@@ -133,7 +168,7 @@ The OpenSea API supports **30 networks**. The table below lists production-teste
 | HyperEVM        | `hypurr-hyperevm`      | `0x9125e2d6827a00b0f8330d6ef7bef07730bac685`   |
 | HyperEVM        | `hypio`                | `0x63eb9d77d083ca10c304e28d5191321977fd0bfb`   |
 | HyperEVM        | `rekt-wolves-hype`     | `0x822c4f30414299e003ef39e9aba49d8f8d4445ba`   |
-| Arc             | `akarii`               | `0xbea22653119f73716905919708a612332bf98e3f`   |
+| Arc             | [`akarii`](https://www.nftdata.app/?collection=akarii) | `0xbea22653119f73716905919708a612332bf98e3f`   |
 | Ronin           | `axie-land`            | `0x8c811e3c958e190f5ec15fb376533a3398620500`   |
 | Ronin           | `moki-collection`      | `0x47b5a7c2e4f07772696bbf8c8c32fe2b9eabd550`   |
 | ApeChain        | `gimboznft`            | `0x81c9ce55e8214fd0f5181fd3d38f52fd8c33ec38`   |
@@ -142,6 +177,20 @@ The OpenSea API supports **30 networks**. The table below lists production-teste
 | Ethereum        | `pudgypenguins`        | `0xbd3531da5cf5857e7cfaa92426877b022e612cf8`   |
 
 These examples have been tested in production and are not representative of all 30 supported networks.
+
+---
+
+## Multichain Collection Examples
+
+NFT Data supports collection lookups across 30 networks. The following examples demonstrate collection discovery across five different networks.
+
+| Network   | Collection                | Explore                                                                 |
+|-----------|---------------------------|-------------------------------------------------------------------------|
+| Arc       | AKARII                    | [www.nftdata.app/?collection=akarii](https://www.nftdata.app/?collection=akarii) |
+| Solana    | Mad Lads                  | [www.nftdata.app/?collection=mad-lads](https://www.nftdata.app/?collection=mad-lads) |
+| Ethereum  | Azuki                     | [www.nftdata.app/?collection=azuki](https://www.nftdata.app/?collection=azuki) |
+| Base      | OK Computers              | [www.nftdata.app/?collection=okcomputers](https://www.nftdata.app/?collection=okcomputers) |
+| Ink       | Templars of the Storm     | [www.nftdata.app/?collection=templars-of-the-storm](https://www.nftdata.app/?collection=templars-of-the-storm) |
 
 ---
 
@@ -170,7 +219,7 @@ Responses are cached **in-memory for 60 seconds** per worker instance. The API r
 |--------|-----------------------------------------------------------------------------------------|
 | `200`  | Success — response body contains collection data                                        |
 | `400`  | Invalid request — malformed slug, missing field, or OpenSea rejected the input          |
-| `402`  | Payment required — valid x402 payment header missing or invalid                        |
+| `402`  | Payment required — no valid x402 or MPP payment credential supplied                    |
 | `404`  | Collection not found — slug does not match any OpenSea collection                       |
 | `429`  | Rate limited — OpenSea upstream rate limit hit; `Retry-After` header forwarded if present |
 | `500`  | Unexpected server error                                                                 |
@@ -254,6 +303,17 @@ npm run build
 # Validate the ERC-8257 manifest
 npm run validate-manifest
 ```
+
+---
+
+## Links and Discovery
+
+- [API Documentation](https://www.nftdata.app/docs)
+- [OpenAPI Specification](https://www.nftdata.app/openapi.json)
+- [x402scan server page](https://www.x402scan.com/server/0ee65334-846e-433a-bc38-55a37ffe841a)
+- [Agent-readiness score](https://agents.circle.com/sell/score?url=www.nftdata.app)
+- [Agent402 x402 marketplace](https://agent402.tools/marketplace/tools?q=www.nftdata.app)
+- [GitHub repository](https://github.com/Nomad07/nft-data)
 
 ---
 
