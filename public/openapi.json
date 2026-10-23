@@ -4,7 +4,7 @@
     "title": "NFT Data",
     "version": "1.0.0",
     "description": "OpenSea Agent Tool that provides structured NFT collection and market data for AI agents.",
-    "x-guidance": "POST /api/get-collection-data with a JSON body containing a 'collection' field set to an OpenSea collection slug (e.g. 'basedpunks'). Requires USDC payment on Base mainnet (0.002 USDC per request) via x402 v2 (X-PAYMENT header) or MPP evm/charge (Authorization: Payment header). Returns structured collection metadata, floor price, volume, sales, and owner data sourced from the OpenSea API v2.",
+    "x-guidance": "POST /api/get-collection-data with a JSON body containing a 'collection' field set to an OpenSea collection slug (e.g. 'basedpunks'). Requires USDC payment (0.002 USDC per request) via x402 v2 on Base mainnet (PAYMENT-SIGNATURE header) or Solana mainnet (PAYMENT-SIGNATURE header), or MPP evm/charge on Base mainnet (Authorization: Payment header). Returns structured collection metadata, floor price, volume, sales, and owner data sourced from the OpenSea API v2.",
     "contact": {
       "email": "hi@nftdata.app"
     }
@@ -18,12 +18,12 @@
       "post": {
         "operationId": "get_collection_data",
         "summary": "Get NFT collection data",
-        "description": "Returns structured NFT collection and market data for a given OpenSea collection slug. Requires USDC payment on Base mainnet via x402 v2 or MPP evm/charge (0.002 USDC per request).",
+        "description": "Returns structured NFT collection and market data for a given OpenSea collection slug. Requires USDC payment (0.002 USDC per request) via x402 v2 on Base mainnet or Solana mainnet, or MPP evm/charge on Base mainnet.",
         "tags": ["NFT Data"],
         "x-payment-info": {
           "protocols": [
-            { "x402": {} },
-            { "mpp": { "method": "evm", "intent": "charge" } }
+            { "x402": { "networks": ["eip155:8453", "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"], "scheme": "exact" } },
+            { "mpp": { "method": "evm", "intent": "charge", "networks": ["eip155:8453"] } }
           ],
           "price": {
             "mode": "fixed",

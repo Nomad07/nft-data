@@ -32,6 +32,7 @@ import {
 } from "@x402/core/server";
 import type { HTTPAdapter } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
+import { ExactSvmScheme } from "@x402/svm/exact/server";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 
 // ── MPP imports ───────────────────────────────────────────────────────────────
@@ -74,6 +75,10 @@ function fetchCollectionData(...args: Parameters<FetchCollectionDataFn>): Return
 // payTo: declared creator wallet for this project (NFT Data Tool #778, Base).
 const PAY_TO = "0x344143199642e87320785823c20c2df107d17534" as const; // arc-studio-allow-onchain-literal
 
+// arc-studio-allow-onchain-literal
+// Solana USDC payment recipient for x402 v2 exact/svm — public address only, no private key.
+const SOLANA_PAY_TO = "8MdycJfWSD8KxL8n2kSzEU9Ryuo1EuJALkq8ezrK9i3m" as const; // arc-studio-allow-onchain-literal
+
 const FACILITATOR_URL = "https://facilitator.payai.network";
 const CANONICAL_ORIGIN = "https://www.nftdata.app";
 
@@ -86,10 +91,9 @@ const MPP_AMOUNT = "0.002";
 
 const facilitatorClient = new HTTPFacilitatorClient({ url: FACILITATOR_URL });
 
-const resourceServer = new x402ResourceServer(facilitatorClient).register(
-  "eip155:*",
-  new ExactEvmScheme(),
-);
+const resourceServer = new x402ResourceServer(facilitatorClient)
+  .register("eip155:*", new ExactEvmScheme())
+  .register("solana:*", new ExactSvmScheme());
 
 const bazaarExtension = declareDiscoveryExtension({
   bodyType: "json",
@@ -134,13 +138,22 @@ const ROUTE_KEY = "POST /api/get-collection-data";
 
 const httpServer = new x402HTTPResourceServer(resourceServer, {
   [ROUTE_KEY]: {
-    accepts: {
-      scheme: "exact",
-      price: "$0.002",
-      network: "eip155:8453",
-      payTo: PAY_TO,
-      maxTimeoutSeconds: 60,
-    },
+    accepts: [
+      {
+        scheme: "exact",
+        price: "$0.002",
+        network: "eip155:8453",
+        payTo: PAY_TO,
+        maxTimeoutSeconds: 60,
+      },
+      {
+        scheme: "exact",
+        price: "$0.002",
+        network: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        payTo: SOLANA_PAY_TO,
+        maxTimeoutSeconds: 60,
+      },
+    ],
     resource: "https://www.nftdata.app/api/get-collection-data",
     description:
       "NFT Data — get_collection_data (0.002 USDC). Returns structured NFT collection and market data for any OpenSea collection slug.",

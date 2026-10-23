@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>API Docs - NFT Data</title>
-  <meta name="description" content="NFT Data API documentation. POST endpoint for structured OpenSea collection and market data. $0.002 per request via x402 on Base mainnet." />
+  <meta name="description" content="NFT Data API documentation. POST endpoint for structured OpenSea collection and market data. $0.002 per request via x402 v2 on Base or Solana, or MPP evm/charge on Base." />
   <link rel="canonical" href="https://www.nftdata.app/docs" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -482,7 +482,7 @@
       Send a collection slug and get floor price, 24h/7d/30d/all-time sales and volume, total supply, unique owners,
       contract addresses and creation date. Data is sourced from the OpenSea API and passed through as is, with
       currencies reported in the response (ETH, USDC, etc.). Each successful request costs $0.002, payable in USDC
-      on Base mainnet using either the x402 v2 or MPP evm/charge payment protocol. No API keys or subscriptions
+      using x402 v2 (Base mainnet or Solana mainnet) or MPP evm/charge (Base mainnet). No API keys or subscriptions
       required. Registered as OpenSea Tool #778 (ERC-8257).
     </p>
   </header>
@@ -498,7 +498,7 @@
         </div>
         <div class="overview-item">
           <div class="ov-label">Payment</div>
-          <div class="ov-value">x402 v2 or MPP evm/charge - Base mainnet (USDC)</div>
+          <div class="ov-value">x402 v2 (Base + Solana) or MPP evm/charge (Base) - USDC</div>
         </div>
         <div class="overview-item">
           <div class="ov-label">Data source</div>
@@ -535,7 +535,7 @@
       </p>
       <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px;">
         <li class="doc-text">
-          <strong>x402 v2</strong> - send a signed <code>PAYMENT-SIGNATURE</code> header.
+          <strong>x402 v2</strong> - send a signed <code>PAYMENT-SIGNATURE</code> header. Accepted on Base mainnet and Solana mainnet.
           See <a href="#payment-x402">x402 payment details</a> below.
         </li>
         <li class="doc-text">
@@ -577,13 +577,20 @@
   <section class="doc-section" id="payment-x402">
     <h2 class="section-heading">Payment: x402 v2</h2>
     <div class="payment-note">
-      <strong>x402 on Base mainnet.</strong>
-      Payment is <strong>0.002 USDC</strong> per request, settled on Base (chain ID 8453).
-      The server advertises payment terms in the <code>PAYMENT-REQUIRED</code> response header on a 402 response.
+      <strong>x402 v2 - Base mainnet and Solana mainnet.</strong>
+      Payment is <strong>0.002 USDC</strong> per request. The server accepts payment on either network - use whichever your client supports.
+      The server advertises payment terms for both networks in the <code>PAYMENT-REQUIRED</code> response header on a 402 response.
       Submit the signed payment in the <code>PAYMENT-SIGNATURE</code> request header on your next call.
       If the request succeeds, the server returns a <code>PAYMENT-RESPONSE</code> header with the settlement result.
       Payment verification is handled by the PayAI x402 facilitator.
     </div>
+    <table class="response-table" style="margin-top: 12px;">
+      <thead><tr><th>Network</th><th>CAIP-2</th><th>USDC asset</th></tr></thead>
+      <tbody>
+        <tr><td>Base mainnet</td><td><code>eip155:8453</code></td><td><code>0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913</code></td></tr>
+        <tr><td>Solana mainnet</td><td><code>solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp</code></td><td><code>EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v</code></td></tr>
+      </tbody>
+    </table>
     <div class="payment-note" style="margin-top: 10px; background: var(--surface-muted); border-color: var(--border-raised);">
       <strong style="color: var(--ink-2);">Settlement timing.</strong>
       Payment settlement is attempted only after collection data has been retrieved successfully from OpenSea.

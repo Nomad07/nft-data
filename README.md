@@ -63,7 +63,9 @@ The endpoint accepts valid payment credentials through either x402 v2 or MPP `ev
 
 ## x402 Payment
 
-The endpoint requires **0.002 USDC on Base** per successful call, paid via [x402](https://x402.org/) v2 using EIP-3009 (`exact` scheme).
+The endpoint accepts **0.002 USDC** per successful call via [x402](https://x402.org/) v2 (`exact` scheme) on Base mainnet or Solana mainnet. Use whichever network your client supports.
+
+**Base mainnet (EVM)**
 
 | Field             | Value                                                        |
 |-------------------|--------------------------------------------------------------|
@@ -73,7 +75,17 @@ The endpoint requires **0.002 USDC on Base** per successful call, paid via [x402
 | Scheme            | `exact`                                                      |
 | Recipient         | `0x344143199642E87320785823C20c2dF107D17534`                 |
 
-The 402 response uses the x402 v2 format — payment requirements are encoded in the `PAYMENT-REQUIRED` response header. The endpoint also exposes the official Bazaar discovery extension under `extensions.bazaar`, which describes the POST JSON input schema and an example response. Bazaar-compatible x402 clients can discover this endpoint through that extension.
+**Solana mainnet (SVM)**
+
+| Field             | Value                                                        |
+|-------------------|--------------------------------------------------------------|
+| Network           | Solana mainnet (`solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`)  |
+| Token             | USDC (`EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`)       |
+| Amount            | `2000` atomic units (0.002 USDC)                            |
+| Scheme            | `exact`                                                      |
+| Recipient         | `8MdycJfWSD8KxL8n2kSzEU9Ryuo1EuJALkq8ezrK9i3m`             |
+
+The 402 response uses the x402 v2 format -- payment requirements for both networks are encoded in the `PAYMENT-REQUIRED` response header. The endpoint also exposes the official Bazaar discovery extension under `extensions.bazaar`, which describes the POST JSON input schema and an example response. Bazaar-compatible x402 clients can discover this endpoint through that extension.
 
 To call this tool from an OpenSea-compatible agent, reference it by its on-chain coordinates:
 
