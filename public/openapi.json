@@ -9,6 +9,10 @@
       "email": "hi@nftdata.app"
     }
   },
+  "externalDocs": {
+    "description": "NFT Data API Documentation",
+    "url": "https://www.nftdata.app/docs"
+  },
   "paths": {
     "/api/get-collection-data": {
       "post": {
