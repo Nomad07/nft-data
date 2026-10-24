@@ -27,7 +27,7 @@ POST https://www.nftdata.app/api/get-collection-data
 | Registry contract  | `0x265bb2dbfc0a8165c9a1941eb1372f349bad2cf1`   |
 | Registry page      | https://opensea.io/tools/erc8257/base/778      |
 | Action             | `get_collection_data`                          |
-| Payment            | $0.002 USDC per successful request via x402 v2 or MPP evm/charge on Base mainnet |
+| Payment            | OpenSea Tool #778: x402 v2 on Base mainnet (USDC). The public API additionally supports x402 v2 on Solana mainnet and MPP evm/charge on Base mainnet. Price: $0.002 per successful request. |
 | Manifest           | https://www.nftdata.app/.well-known/ai-tool/nft-data.json |
 
 ---
