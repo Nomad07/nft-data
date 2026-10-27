@@ -18,6 +18,17 @@ POST https://www.nftdata.app/api/get-collection-data
 
 ---
 
+## Agent Discovery and Integrations
+
+- **PayAI Ecosystem:** [https://payai.network/ecosystem/nft-data](https://payai.network/ecosystem/nft-data)
+- **OpenSea Tool #778 (ERC-8257):** [https://opensea.io/tools/erc8257/base/778](https://opensea.io/tools/erc8257/base/778)
+- **Poncho:** [https://tryponcho.com/m/nftdata.app](https://tryponcho.com/m/nftdata.app)
+- **x402scan:** [https://www.x402scan.com/server/0ee65334-846e-433a-bc38-55a37ffe841a](https://www.x402scan.com/server/0ee65334-846e-433a-bc38-55a37ffe841a)
+- **Agent402 Marketplace:** [https://agent402.tools/marketplace/tools?q=www.nftdata.app](https://agent402.tools/marketplace/tools?q=www.nftdata.app)
+- **Circle Agent Readiness (100/100):** [https://agents.circle.com/sell/score?url=www.nftdata.app](https://agents.circle.com/sell/score?url=www.nftdata.app)
+
+---
+
 ## OpenSea Agent Tool
 
 | Field              | Value                                          |
@@ -324,10 +335,6 @@ npm run validate-manifest
 
 - [API Documentation](https://www.nftdata.app/docs)
 - [OpenAPI Specification](https://www.nftdata.app/openapi.json)
-- [x402scan server page](https://www.x402scan.com/server/0ee65334-846e-433a-bc38-55a37ffe841a)
-- [Agent-readiness score](https://agents.circle.com/sell/score?url=www.nftdata.app)
-- [Agent402 x402 marketplace](https://agent402.tools/marketplace/tools?q=www.nftdata.app)
-- [GitHub repository](https://github.com/Nomad07/nft-data)
 
 ---
 
