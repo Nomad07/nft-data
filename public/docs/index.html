@@ -558,6 +558,33 @@
     </div>
   </section>
 
+  <!-- MCP Server -->
+  <section class="doc-section" id="mcp-server">
+    <h2 class="section-heading">MCP Server</h2>
+    <div class="card">
+      <p class="doc-text" style="margin-bottom: 12px;">
+        NFT Data is available as a published MCP server for developers and AI agents using local MCP clients over stdio.
+        The MCP server exposes the <code>get_collection_data</code> tool and calls the NFT Data API using x402 payments on Base mainnet.
+        Installing it is optional - the API is directly accessible without the MCP server.
+      </p>
+      <pre style="margin-bottom: 12px;">npx -y nftdata-mcp</pre>
+      <div class="payment-note" style="margin-bottom: 12px;">
+        <strong>Price:</strong> $0.002 in USDC per successful request via x402 on Base mainnet.
+      </div>
+      <p class="doc-text" style="margin-bottom: 8px;"><strong>Requirements:</strong></p>
+      <ul style="list-style: none; padding: 0; margin: 0 0 12px 0; display: flex; flex-direction: column; gap: 6px;">
+        <li class="doc-text">Node.js 20 or newer.</li>
+        <li class="doc-text">A dedicated EVM wallet funded with USDC on Base mainnet. Do not use a primary wallet.</li>
+        <li class="doc-text">Set the <code>EVM_PRIVATE_KEY</code> environment variable to the private key of that dedicated wallet.</li>
+      </ul>
+      <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px;">
+        <li class="doc-text"><strong>GitHub:</strong> <a href="https://github.com/Nomad07/nftdata-mcp" target="_blank" rel="noopener noreferrer">https://github.com/Nomad07/nftdata-mcp</a></li>
+        <li class="doc-text"><strong>npm:</strong> <a href="https://www.npmjs.com/package/nftdata-mcp" target="_blank" rel="noopener noreferrer">https://www.npmjs.com/package/nftdata-mcp</a></li>
+        <li class="doc-text"><strong>MCP Registry:</strong> <a href="https://registry.modelcontextprotocol.io/?q=nftdata" target="_blank" rel="noopener noreferrer">https://registry.modelcontextprotocol.io/?q=nftdata</a></li>
+      </ul>
+    </div>
+  </section>
+
   <!-- Endpoint -->
   <section class="doc-section">
     <h2 class="section-heading">Endpoint</h2>

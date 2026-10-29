@@ -59,6 +59,29 @@ NFT Data is also available through Poncho, providing another discovery point for
 
 ---
 
+## MCP Server
+
+NFT Data is available as a published MCP server (`nftdata-mcp`) for developers and AI agents using local MCP clients over stdio.
+
+```
+npx -y nftdata-mcp
+```
+
+The MCP server exposes the `get_collection_data` tool, which calls the NFT Data API using x402 payments on Base mainnet. Each successful request costs **$0.002 in USDC**.
+
+**Requirements:**
+- Node.js 20 or newer.
+- A dedicated EVM wallet funded with USDC on Base mainnet. Do not use a primary wallet.
+- Set the `EVM_PRIVATE_KEY` environment variable to the private key of that dedicated wallet.
+
+Installing the MCP server is optional. The NFT Data API remains directly accessible without it.
+
+- **GitHub:** [https://github.com/Nomad07/nftdata-mcp](https://github.com/Nomad07/nftdata-mcp)
+- **npm:** [https://www.npmjs.com/package/nftdata-mcp](https://www.npmjs.com/package/nftdata-mcp)
+- **MCP Registry:** [https://registry.modelcontextprotocol.io/?q=nftdata](https://registry.modelcontextprotocol.io/?q=nftdata)
+
+---
+
 ## Public Paid API
 
 **Endpoint:** [https://www.nftdata.app/api/get-collection-data](https://www.nftdata.app/api/get-collection-data)
