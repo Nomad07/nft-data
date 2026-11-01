@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MCP Server - NFT Data</title>
+  <meta name="description" content="nftdata-mcp: MCP server for the NFT Data API. Get OpenSea NFT collection market data in Claude Desktop and compatible MCP clients. x402 payments on Base mainnet, $0.002 per request." />
+  <link rel="canonical" href="https://www.nftdata.app/docs/mcp" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:              #0a1628;
+      --bg-mid:          #0d1d35;
+      --surface:         #111f36;
+      --surface-raised:  #162540;
+      --surface-muted:   #192b45;
+      --ink:             #f0f4fc;
+      --ink-2:           #d8e6f5;
+      --muted:           #b8cce0;
+      --subtle:          #7a93ae;
+      --border:          rgba(255,255,255,0.09);
+      --border-raised:   rgba(255,255,255,0.14);
+      --accent:          #6ea8d8;
+      --accent-hover:    #93beea;
+      --accent-dim:      rgba(110,168,216,0.15);
+      --success:         #6fcf97;
+      --danger:          #e05c6a;
+      --danger-surface:  rgba(224,92,106,0.09);
+      --danger-border:   rgba(224,92,106,0.28);
+      --warn-surface:    rgba(245,180,60,0.08);
+      --warn-border:     rgba(245,180,60,0.22);
+      --warn:            #f5b43c;
+      --radius:          14px;
+      --radius-sm:       9px;
+      --radius-xs:       5px;
+      --shadow-card:     0 1px 3px rgba(0,0,0,0.35), 0 0 0 1px var(--border);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      background-image: linear-gradient(160deg, #0a1628 0%, #0d1d35 55%, #0f2440 100%);
+      background-attachment: fixed;
+      color: var(--ink);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+    .display { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.03em; }
+    .mono    { font-family: 'JetBrains Mono', Menlo, monospace; }
+
+    /* -- Layout -- */
+    .page {
+      flex: 1;
+      width: 100%;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 52px 24px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    @media (max-width: 480px) {
+      .page { padding: 28px 14px 40px; gap: 28px; }
+    }
+
+    /* -- Header -- */
+    .doc-header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .doc-breadcrumb {
+      font-size: 12px;
+      color: var(--subtle);
+      margin-bottom: 4px;
+    }
+
+    .doc-breadcrumb a { color: var(--subtle); }
+    .doc-breadcrumb a:hover { color: var(--accent); }
+
+    .doc-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.1;
+      letter-spacing: -0.035em;
+    }
+
+    .doc-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* -- Section -- */
+    .doc-section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .section-heading {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* -- Card -- */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border-raised);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      box-shadow: var(--shadow-card);
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 16px 14px; }
+    }
+
+    /* -- Overview card -- */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 520px) {
+      .overview-grid { grid-template-columns: 1fr; gap: 10px; }
+    }
+
+    .overview-item {}
+
+    .ov-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .ov-value {
+      font-size: 14px;
+      color: var(--ink-2);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .ov-value.price {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    /* -- Endpoint bar -- */
+    .endpoint-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border-raised);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      flex-wrap: wrap;
+    }
+
+    .method-badge {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 11px;
+      font-weight: 500;
+      background: rgba(110,168,216,0.18);
+      color: var(--accent);
+      border: 1px solid rgba(110,168,216,0.25);
+      border-radius: 4px;
+      padding: 3px 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .endpoint-url {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 13px;
+      color: var(--ink-2);
+      word-break: break-all;
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* -- Description text -- */
+    .doc-text {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .doc-text strong { color: var(--ink-2); font-weight: 600; }
+    .doc-text code {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 12.5px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--ink-2);
+    }
+
+    /* -- Parameters / fields table -- */
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    .param-table thead th {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 0 10px 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .param-table tbody tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .param-table tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .param-table tbody td {
+      padding: 10px 10px 10px 0;
+      vertical-align: top;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .param-table tbody td:first-child {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 12.5px;
+      color: var(--ink-2);
+      white-space: nowrap;
+      padding-right: 14px;
+    }
+
+    .param-table .badge-req {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: #e05c6a;
+      background: rgba(224,92,106,0.1);
+      border: 1px solid rgba(224,92,106,0.22);
+      border-radius: 3px;
+      padding: 1px 5px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .param-table .badge-opt {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: var(--subtle);
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .param-type {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 11.5px;
+      color: var(--subtle);
+      white-space: nowrap;
+    }
+
+    /* -- Code block -- */
+    .code-block {
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      overflow-x: auto;
+    }
+
+    .code-block pre {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 12.5px;
+      color: var(--ink-2);
+      line-height: 1.65;
+      white-space: pre;
+      margin: 0;
+    }
+
+    .code-block-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    /* -- Response status badges -- */
+    .status-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .status-item:last-child { border-bottom: none; }
+
+    .status-code {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 36px;
+      flex-shrink: 0;
+    }
+
+    .status-code.ok   { color: var(--success); }
+    .status-code.pay  { color: var(--warn); }
+    .status-code.err  { color: var(--danger); }
+
+    .status-desc {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .status-desc strong { color: var(--ink-2); font-weight: 600; }
+    .status-desc code {
+      font-family: 'JetBrains Mono', Menlo, monospace;
+      font-size: 12px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      color: var(--ink-2);
+    }
+
+    /* -- Payment note -- */
+    .payment-note {
+      background: var(--warn-surface);
+      border: 1px solid var(--warn-border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .payment-note strong { color: var(--warn); font-weight: 600; }
+
+    /* -- Details/summary -- */
+    details { margin-top: 12px; }
+    summary {
+      font-size: 13px;
+      color: var(--accent);
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::before {
+      content: '▶';
+      font-size: 9px;
+      transition: transform 0.15s;
+      display: inline-block;
+    }
+    details[open] summary::before { transform: rotate(90deg); }
+    summary:hover { color: var(--accent-hover); }
+
+    /* -- Footer -- */
+    footer {
+      padding: 28px 20px 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .footer-top-row {
+      width: 100%;
+      max-width: 860px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-left {
+      font-size: 11px;
+      color: var(--subtle);
+      text-align: left;
+      white-space: nowrap;
+      opacity: 0.8;
+    }
+
+    .footer-left .heart { color: #e05c6a; }
+
+    .footer-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--subtle);
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      text-align: center;
+      opacity: 0.65;
+    }
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .footer-right a {
+      font-size: 12px;
+      color: var(--subtle);
+      text-decoration: none;
+      transition: color 0.15s;
+      opacity: 0.8;
+    }
+
+    .footer-right a:hover { color: var(--accent); opacity: 1; text-decoration: none; }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      justify-content: center;
+    }
+
+    .footer-links a {
+      font-size: 12px;
+      color: var(--subtle);
+      transition: color 0.15s;
+      opacity: 0.75;
+    }
+
+    .footer-links a:hover { color: var(--accent); opacity: 1; text-decoration: none; }
+
+    @media (max-width: 480px) {
+      .footer-top-row { grid-template-columns: 1fr; justify-items: center; }
+      .footer-left { text-align: center; }
+      .footer-right { justify-content: center; }
+    }
+
+  </style>
+</head>
+<body>
+
+<main class="page">
+
+  <!-- Header -->
+  <header class="doc-header">
+    <div class="doc-breadcrumb"><a href="/">NFT Data</a> / <a href="/docs">API Docs</a> / MCP Server</div>
+    <h1 class="doc-title display">MCP Server</h1>
+    <p class="doc-subtitle">
+      <strong style="color: var(--ink-2);">nftdata-mcp</strong> is a published MCP server that gives Claude Desktop and compatible MCP clients
+      access to the NFT Data API through one tool: <strong style="color: var(--ink-2);">get_collection_data</strong>.
+      Each successful non-cached request is paid automatically at <strong style="color: var(--ink-2);">$0.002 in USDC</strong>
+      on Base mainnet using x402. No API keys or subscriptions required.
+      The MCP server is a separate optional integration; the NFT Data API is accessible directly without it.
+    </p>
+  </header>
+
+  <!-- Overview -->
+  <section class="doc-section">
+    <h2 class="section-heading">Overview</h2>
+    <div class="card">
+      <div class="overview-grid">
+        <div class="overview-item">
+          <div class="ov-label">Version</div>
+          <div class="ov-value">1.0.3</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label">Transport</div>
+          <div class="ov-value">stdio</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label">Payment</div>
+          <div class="ov-value">x402 on Base mainnet (USDC)</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label">Price</div>
+          <div class="ov-value">$0.002 USDC per successful non-cached request</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Requirements and setup -->
+  <section class="doc-section" id="setup">
+    <h2 class="section-heading">Requirements and Claude Desktop setup</h2>
+    <div class="card">
+      <p class="doc-text" style="margin-bottom: 14px;"><strong>Requirements:</strong></p>
+      <table class="param-table" style="margin-bottom: 20px;">
+        <thead>
+          <tr>
+            <th>Requirement</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Node.js</td>
+            <td>Version 20 or newer</td>
+          </tr>
+          <tr>
+            <td>MCP client</td>
+            <td>Claude Desktop or another compatible stdio MCP client</td>
+          </tr>
+          <tr>
+            <td>Dedicated wallet</td>
+            <td>A dedicated EVM wallet funded with a small USDC balance on Base mainnet. Do not use a primary wallet.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="doc-text" style="margin-bottom: 10px;">Add the following block to your Claude Desktop config file:</p>
+      <p class="doc-text" style="margin-bottom: 6px;">
+        macOS: <code>~/Library/Application Support/Claude/claude_desktop_config.json</code><br>
+        Windows: <code>%APPDATA%\Claude\claude_desktop_config.json</code>
+      </p>
+      <div class="code-block" style="margin-top: 12px; margin-bottom: 14px;">
+        <div class="code-block-label">claude_desktop_config.json</div>
+        <pre>{
+  "mcpServers": {
+    "nftdata": {
+      "command": "npx",
+      "args": ["-y", "nftdata-mcp@1.0.3"],
+      "env": {
+        "EVM_PRIVATE_KEY": "YOUR_EVM_PRIVATE_KEY"
+      }
+    }
+  }
+}</pre>
+      </div>
+      <p class="doc-text" style="margin-bottom: 8px;">
+        Replace <code>YOUR_EVM_PRIVATE_KEY</code> with the private key of your dedicated wallet
+        (<code>0x</code> followed by 64 hexadecimal characters). Store this value only in the config file on your own machine.
+        Never share it in chat or paste it anywhere else.
+      </p>
+      <p class="doc-text">
+        After saving, fully restart Claude Desktop. The server communicates over <strong>stdio</strong> and is launched
+        automatically by the client. Running it manually from a terminal shows no output; it waits for an MCP client to connect.
+      </p>
+    </div>
+  </section>
+
+  <!-- Configuration -->
+  <section class="doc-section" id="configuration">
+    <h2 class="section-heading">Configuration</h2>
+    <div class="card">
+      <table class="param-table">
+        <thead>
+          <tr>
+            <th>Variable</th>
+            <th></th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>EVM_PRIVATE_KEY</td>
+            <td><span class="badge-req">required</span></td>
+            <td>-</td>
+            <td>Private key of the dedicated wallet that pays for calls. Must be <code>0x</code> followed by exactly 64 hexadecimal characters.</td>
+          </tr>
+          <tr>
+            <td>NFTDATA_MAX_REQUESTS</td>
+            <td><span class="badge-opt">optional</span></td>
+            <td><code>100</code></td>
+            <td>Maximum signed payments per session. Integer 1-1000; any value outside this range stops startup with an error.</td>
+          </tr>
+          <tr>
+            <td>NFTDATA_TIMEOUT_MS</td>
+            <td><span class="badge-opt">optional</span></td>
+            <td><code>15000</code></td>
+            <td>Request timeout in milliseconds. Range: 1000-60000.</td>
+          </tr>
+          <tr>
+            <td>NFTDATA_URL</td>
+            <td><span class="badge-opt">optional</span></td>
+            <td><code>https://www.nftdata.app/api/get-collection-data</code></td>
+            <td>API endpoint. Only the official NFT Data endpoint is accepted; any other value stops startup.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- First query -->
+  <section class="doc-section" id="first-query">
+    <h2 class="section-heading">First query</h2>
+    <div class="card">
+      <p class="doc-text" style="margin-bottom: 12px;">After restarting Claude Desktop:</p>
+      <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+        <li class="doc-text">Open a new conversation.</li>
+        <li class="doc-text">Start with an explicit request to make sure Claude selects the right server when multiple MCP servers are configured:
+          <div class="code-block" style="margin-top: 8px;"><pre>Use the NFT Data MCP server.</pre></div>
+        </li>
+        <li class="doc-text">When Claude asks for a collection slug, enter an existing OpenSea collection slug, for example:
+          <div class="code-block" style="margin-top: 8px;"><pre>azuki</pre></div>
+          This is just an example. You can use the slug of any OpenSea collection.
+        </li>
+        <li class="doc-text">Continue with natural follow-up questions. If the NFT Data server is not selected, ask Claude explicitly to use it.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Available data -->
+  <section class="doc-section" id="data">
+    <h2 class="section-heading">Available data</h2>
+    <div class="card">
+      <p class="doc-text" style="margin-bottom: 14px;">
+        The <code>get_collection_data</code> tool returns the following fields for any OpenSea collection.
+        Not every field is guaranteed to be populated for every collection.
+      </p>
+      <table class="param-table">
+        <thead>
+          <tr><th>Field</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>name</td><td>Collection display name</td></tr>
+          <tr><td>slug</td><td>OpenSea collection slug</td></tr>
+          <tr><td>contracts</td><td>Array of contract objects, each with <code>address</code> and <code>chain</code></td></tr>
+          <tr><td>floor_price</td><td>Current floor price (numeric)</td></tr>
+          <tr><td>floor_price_currency</td><td>Currency of the floor price (e.g. <code>ETH</code>, <code>USDC</code>)</td></tr>
+          <tr><td>one_day_sales</td><td>Sales count in the last 24 hours</td></tr>
+          <tr><td>one_day_volume</td><td>Trade volume in the last 24 hours</td></tr>
+          <tr><td>one_day_volume_currency</td><td>Currency of the 24h volume</td></tr>
+          <tr><td>seven_day_sales</td><td>Sales count in the last 7 days</td></tr>
+          <tr><td>seven_day_volume</td><td>Trade volume in the last 7 days</td></tr>
+          <tr><td>seven_day_volume_currency</td><td>Currency of the 7d volume</td></tr>
+          <tr><td>thirty_day_sales</td><td>Sales count in the last 30 days</td></tr>
+          <tr><td>thirty_day_volume</td><td>Trade volume in the last 30 days</td></tr>
+          <tr><td>thirty_day_volume_currency</td><td>Currency of the 30d volume</td></tr>
+          <tr><td>total_sales</td><td>All-time sales count</td></tr>
+          <tr><td>total_volume</td><td>All-time trade volume</td></tr>
+          <tr><td>total_volume_currency</td><td>Currency of the all-time volume</td></tr>
+          <tr><td>num_owners</td><td>Number of unique owners</td></tr>
+          <tr><td>total_supply</td><td>Total token supply</td></tr>
+          <tr><td>created_date</td><td>Collection creation date (ISO 8601 date string)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Example -->
+  <section class="doc-section" id="example">
+    <h2 class="section-heading">Example: Azuki</h2>
+    <div class="card">
+      <p class="doc-text" style="margin-bottom: 14px;">
+        The following values are from a specific historical query. Market data changes continuously; these are not current live data.
+      </p>
+      <p class="doc-text" style="margin-bottom: 8px;"><strong>Collection</strong></p>
+      <table class="param-table" style="margin-bottom: 16px;">
+        <tbody>
+          <tr><td>Name</td><td>Azuki</td></tr>
+          <tr><td>Slug</td><td><code>azuki</code></td></tr>
+          <tr><td>Chain</td><td>Ethereum</td></tr>
+          <tr><td>Contract</td><td><code>0xed5af388653567af2f388e6224dc7c4b3241c544</code></td></tr>
+          <tr><td>Created</td><td>January 12, 2022</td></tr>
+          <tr><td>Total supply</td><td>10,000</td></tr>
+          <tr><td>Unique owners</td><td>4,394</td></tr>
+          <tr><td>Floor price</td><td>0.4933 ETH</td></tr>
+        </tbody>
+      </table>
+      <p class="doc-text" style="margin-bottom: 8px;"><strong>Market activity</strong></p>
+      <table class="param-table" style="margin-bottom: 16px;">
+        <thead><tr><th>Period</th><th>Sales</th><th>Volume</th></tr></thead>
+        <tbody>
+          <tr><td>24 hours</td><td>21</td><td>10.15 ETH</td></tr>
+          <tr><td>7 days</td><td>163</td><td>96.68 ETH</td></tr>
+          <tr><td>30 days</td><td>471</td><td>325.72 ETH</td></tr>
+          <tr><td>Lifetime</td><td>93,156</td><td>831,992.65 ETH</td></tr>
+        </tbody>
+      </table>
+      <p class="doc-text" style="margin-bottom: 8px;"><strong>Tool request</strong></p>
+      <div class="code-block" style="margin-bottom: 14px;">
+        <pre>{ "collection": "azuki" }</pre>
+      </div>
+      <p class="doc-text" style="margin-bottom: 8px;"><strong>Payment</strong></p>
+      <table class="param-table" style="margin-bottom: 14px;">
+        <tbody>
+          <tr><td>Cost</td><td>$0.002 USDC</td></tr>
+          <tr><td>Protocol</td><td>x402 on Base mainnet</td></tr>
+          <tr>
+            <td>Transaction</td>
+            <td>
+              <a href="https://basescan.org/tx/0x4fb35acc31a9f6841647ca2533a7f9ac7113f54364e979b8de4786bf1de580f8"
+                 target="_blank" rel="noopener noreferrer">
+                0x4fb3...580f8
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <details>
+        <summary>Full raw JSON response</summary>
+        <div class="code-block" style="margin-top: 10px;">
+          <pre>{
+  "name": "Azuki",
+  "slug": "azuki",
+  "contracts": [
+    {
+      "address": "0xed5af388653567af2f388e6224dc7c4b3241c544",
+      "chain": "ethereum"
+    }
+  ],
+  "floor_price": 0.49328599,
+  "floor_price_currency": "ETH",
+  "one_day_sales": 21,
+  "one_day_volume": 10.150091000000002,
+  "seven_day_sales": 163,
+  "seven_day_volume": 96.67526161112121,
+  "thirty_day_sales": 471,
+  "thirty_day_volume": 325.72023569476767,
+  "total_sales": 93156,
+  "total_volume": 831992.6461159982,
+  "num_owners": 4394,
+  "total_supply": 10000,
+  "created_date": "2022-01-12",
+  "one_day_volume_currency": "ETH",
+  "seven_day_volume_currency": "ETH",
+  "thirty_day_volume_currency": "ETH",
+  "total_volume_currency": "ETH"
+}</pre>
+        </div>
+      </details>
+      <p class="doc-text" style="margin-top: 12px;">
+        Claude can present the same underlying data as a summary, table, comparison, or detailed report without changing the source values.
+        Ask Claude for the format you prefer.
+      </p>
+    </div>
+  </section>
+
+  <!-- x402 payment -->
+  <section class="doc-section" id="payment">
+    <h2 class="section-heading">x402 payments</h2>
+    <div class="payment-note" style="margin-bottom: 0;">
+      <strong>Base mainnet only.</strong> This MCP package supports x402 payments on Base mainnet exclusively.
+      Solana payments and MPP are not implemented in this package.
+      The NFT Data website and API support additional payment methods (x402 on Solana, MPP on Base),
+      but those do not apply to this MCP server.
+    </div>
+    <div class="card">
+      <p class="doc-text" style="margin-bottom: 12px;">Each request is paid automatically. The payment flow:</p>
+      <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+        <li class="doc-text">The server sends the API request.</li>
+        <li class="doc-text">The API responds with <strong>HTTP 402</strong> and a payment challenge.</li>
+        <li class="doc-text">Before signing, the server validates the challenge:
+          <ul style="padding-left: 18px; margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+            <li class="doc-text">Scheme: <code>exact</code></li>
+            <li class="doc-text">Network: Base mainnet (<code>eip155:8453</code>)</li>
+            <li class="doc-text">USDC contract: <code>0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913</code></li>
+            <li class="doc-text">Amount: exactly <code>2000</code> atomic units ($0.002)</li>
+            <li class="doc-text">Recipient: <code>0x344143199642e87320785823c20c2df107d17534</code></li>
+          </ul>
+        </li>
+        <li class="doc-text">If all values match, the wallet signs and submits the payment.</li>
+        <li class="doc-text">The API returns the collection data and an on-chain transaction hash.</li>
+      </ol>
+      <p class="doc-text" style="margin-bottom: 14px;">
+        Successful non-cached responses include a transaction hash and a BaseScan verification link.
+        Cache hits (results served from the 5-minute per-slug cache) are free and do not include a new hash.
+      </p>
+      <p class="doc-text" style="margin-bottom: 8px;"><strong>Data network vs. payment network</strong></p>
+      <table class="param-table">
+        <thead><tr><th>Network type</th><th>Details</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Data network</td>
+            <td>The blockchain where the NFT collection lives. The API covers 30+ networks including Ethereum, Base, Ink, Arc, HyperEVM, Robinhood Chain, and Solana. Querying a Solana collection still pays on Base.</td>
+          </tr>
+          <tr>
+            <td>Payment network</td>
+            <td>Always Base mainnet, regardless of which chain the queried collection is on.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Security -->
+  <section class="doc-section" id="security">
+    <h2 class="section-heading">Security</h2>
+    <div class="card">
+      <div class="status-row">
+        <div class="status-item">
+          <span class="status-desc"><strong>Use a dedicated wallet.</strong> Fund it with only a small USDC balance on Base mainnet. Never use a primary wallet or one holding significant funds.</span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>Protect <code>EVM_PRIVATE_KEY</code>.</strong> Store it only in the Claude Desktop config file on your own machine. Never share it, paste it into chat, or commit it to version control.</span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>Challenge validation.</strong> The server validates the recipient address, token, network, scheme, and exact amount before signing any payment. Mismatched challenges are rejected.</span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>Verify on BaseScan.</strong> Every successful non-cached response includes a transaction hash. Verify at <a href="https://basescan.org" target="_blank" rel="noopener noreferrer">basescan.org</a>.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Behavior -->
+  <section class="doc-section" id="behavior">
+    <h2 class="section-heading">Behavior</h2>
+    <div class="card">
+      <div class="status-row">
+        <div class="status-item">
+          <span class="status-desc">Sends <code>POST /api/get-collection-data</code> with body <code>{"collection": "&lt;slug&gt;"}</code>. The slug is trimmed and lowercased, then must match <code>^[a-z0-9][a-z0-9_-]*$</code> (max 100 characters); invalid slugs are rejected without making a payment.</span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc">Every signed payment counts against the session limit (<code>NFTDATA_MAX_REQUESTS</code>), including payments for requests that later fail or time out.</span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc">No automatic retries. Each tool call makes at most one payment attempt.</span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc">Successful results are cached for five minutes per slug. Concurrent identical calls share a single in-flight request. Cache hits are free and do not include a transaction hash.</span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc">Generic errors are returned for invalid slug (<code>400</code>), collection not found (<code>404</code>), rate limit (<code>429</code> with retry delay), timeout, and other failures. Server and payment details are not exposed to the MCP client.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Troubleshooting -->
+  <section class="doc-section" id="troubleshooting">
+    <h2 class="section-heading">Troubleshooting</h2>
+    <div class="card">
+      <div class="status-row">
+        <div class="status-item">
+          <span class="status-desc"><strong>Server does not appear in Claude Desktop.</strong> Verify the config file path, check for JSON syntax errors, and fully restart Claude Desktop.</span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong><code>EVM_PRIVATE_KEY</code> is missing or malformed.</strong> The key must be <code>0x</code> followed by exactly 64 hexadecimal characters. Check for extra whitespace or a missing <code>0x</code> prefix.</span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>Request limit reached.</strong> The session has reached <code>NFTDATA_MAX_REQUESTS</code>. Restart Claude Desktop to reset the counter, or increase the limit by setting a higher value in the config <code>env</code> block.</span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>Request timed out.</strong> A payment may have been signed before the timeout occurred. The server does not retry automatically.</span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>SDK import failures after an update.</strong> The x402 SDK changes frequently. Check the <a href="https://docs.x402.org/" target="_blank" rel="noopener noreferrer">x402 docs</a> and the <a href="https://github.com/Nomad07/nftdata-mcp/releases" target="_blank" rel="noopener noreferrer">nftdata-mcp changelog</a> for the latest compatible version.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Run from source -->
+  <section class="doc-section" id="source">
+    <h2 class="section-heading">Run from source (optional)</h2>
+    <div class="card">
+      <p class="doc-text" style="margin-bottom: 10px;">Clone the repository and install dependencies:</p>
+      <div class="code-block" style="margin-bottom: 14px;">
+        <pre>npm install</pre>
+      </div>
+      <p class="doc-text" style="margin-bottom: 10px;">Set <code>EVM_PRIVATE_KEY</code> for the current shell session only, then start:</p>
+      <div class="code-block" style="margin-bottom: 6px;">
+        <div class="code-block-label">macOS / Linux</div>
+        <pre>export EVM_PRIVATE_KEY=0x...
+npm start</pre>
+      </div>
+      <div class="code-block" style="margin-bottom: 6px;">
+        <div class="code-block-label">Windows PowerShell</div>
+        <pre>$env:EVM_PRIVATE_KEY = "0x..."
+npm start</pre>
+      </div>
+      <div class="code-block" style="margin-bottom: 14px;">
+        <div class="code-block-label">Windows cmd</div>
+        <pre>set EVM_PRIVATE_KEY=0x...
+npm start</pre>
+      </div>
+      <p class="doc-text" style="margin-bottom: 10px;">
+        To use a local checkout with Claude Desktop, set <code>"command": "npx"</code> and
+        <code>"args": ["tsx", "/absolute/path/to/nftdata-mcp/server.ts"]</code> in the config.
+      </p>
+      <p class="doc-text" style="margin-bottom: 10px;">Build and test:</p>
+      <div class="code-block">
+        <pre>npm run build   # compiles TypeScript to dist/
+npm test        # offline unit tests, no network calls and no payments</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Links -->
+  <section class="doc-section">
+    <h2 class="section-heading">Links</h2>
+    <div class="card">
+      <div class="status-row">
+        <div class="status-item">
+          <span class="status-desc"><strong>NFT Data:</strong> <a href="https://www.nftdata.app/" target="_blank" rel="noopener noreferrer">https://www.nftdata.app/</a></span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>API Docs:</strong> <a href="/docs">/docs</a></span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>OpenAPI spec:</strong> <a href="/openapi.json" target="_blank" rel="noopener noreferrer">/openapi.json</a></span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>nftdata-mcp on npm:</strong> <a href="https://www.npmjs.com/package/nftdata-mcp" target="_blank" rel="noopener noreferrer">https://www.npmjs.com/package/nftdata-mcp</a></span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>nftdata-mcp on GitHub:</strong> <a href="https://github.com/Nomad07/nftdata-mcp" target="_blank" rel="noopener noreferrer">https://github.com/Nomad07/nftdata-mcp</a></span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>MCP Registry:</strong> <a href="https://registry.modelcontextprotocol.io/?q=nftdata" target="_blank" rel="noopener noreferrer">https://registry.modelcontextprotocol.io/?q=nftdata</a></span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>Changelog:</strong> <a href="https://github.com/Nomad07/nftdata-mcp/releases" target="_blank" rel="noopener noreferrer">https://github.com/Nomad07/nftdata-mcp/releases</a></span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>x402 docs:</strong> <a href="https://docs.x402.org/" target="_blank" rel="noopener noreferrer">https://docs.x402.org/</a></span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>BaseScan:</strong> <a href="https://basescan.org/" target="_blank" rel="noopener noreferrer">https://basescan.org/</a></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-top-row">
+    <span class="footer-left">Made with <span class="heart">&#10084;&#65039;</span> on Mars</span>
+    <span class="footer-badge">AI Agent Tool &nbsp;&middot;&nbsp; ERC-8257 &nbsp;&middot;&nbsp; Base &nbsp;&middot;&nbsp; NFT Data</span>
+    <div class="footer-right">
+      <a href="https://github.com/Nomad07/nft-data" target="_blank" rel="noopener noreferrer" aria-label="GitHub">GitHub</a>
+      <a href="https://x.com/nomadonmars" target="_blank" rel="noopener noreferrer" aria-label="X / Twitter">X / Twitter</a>
+    </div>
+  </div>
+  <nav class="footer-links" aria-label="Tool links">
+    <a href="/">Home</a>
+    <a href="/docs">API Docs</a>
+    <a href="/docs/mcp" aria-current="page">MCP Server</a>
+    <a href="/openapi.json" target="_blank" rel="noopener noreferrer">OpenAPI</a>
+  </nav>
+</footer>
+
+</body>
+</html>
