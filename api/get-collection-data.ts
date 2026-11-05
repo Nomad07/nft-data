@@ -33,7 +33,7 @@ import {
 import type { HTTPAdapter } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { ExactSvmScheme } from "@x402/svm/exact/server";
-import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
+import { bazaarResourceServerExtension, declareDiscoveryExtension } from "@x402/extensions/bazaar";
 
 // ── MPP imports ───────────────────────────────────────────────────────────────
 import { Mppx, evm } from "mppx/server";
@@ -93,7 +93,9 @@ const facilitatorClient = new HTTPFacilitatorClient({ url: FACILITATOR_URL });
 
 const resourceServer = new x402ResourceServer(facilitatorClient)
   .register("eip155:*", new ExactEvmScheme())
-  .register("solana:*", new ExactSvmScheme());
+  .register("solana:*", new ExactSvmScheme())
+  // Enriches the Bazaar declaration with the HTTP method (adds info.input.method = "POST").
+  .registerExtension(bazaarResourceServerExtension);
 
 const bazaarExtension = declareDiscoveryExtension({
   bodyType: "json",
