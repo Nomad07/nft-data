@@ -3,12 +3,29 @@
   "info": {
     "title": "NFT Data",
     "version": "1.0.0",
-    "description": "OpenSea Agent Tool that provides structured NFT collection and market data for AI agents.",
+    "summary": "Pay-per-request NFT collection and market data for AI agents.",
+    "description": "NFT Data is a pay-per-request API for AI agents that returns structured market data for any OpenSea collection. Send an OpenSea collection slug and receive the collection name, contract addresses, floor price, 24-hour / 7-day / 30-day / lifetime sales and volume, total supply, unique owners and creation date. Data is sourced from the OpenSea API v2 and passed through as is; currencies are reported in the response (for example ETH, USDC or HYPE).\n\nEach successful request costs 0.002 USDC. Payment is made per request with either x402 v2 (Base mainnet or Solana mainnet) or MPP evm/charge (Base mainnet). No API keys or subscriptions are required. The API specification itself is free to fetch at /openapi.json.\n\nThe service is also registered as OpenSea Tool #778 (ERC-8257).",
     "x-guidance": "POST /api/get-collection-data with a JSON body containing a 'collection' field set to an OpenSea collection slug (e.g. 'basedpunks'). Requires USDC payment (0.002 USDC per request) via x402 v2 on Base mainnet (PAYMENT-SIGNATURE header) or Solana mainnet (PAYMENT-SIGNATURE header), or MPP evm/charge on Base mainnet (Authorization: Payment header). Returns structured collection metadata, floor price, volume, sales, and owner data sourced from the OpenSea API v2.",
     "contact": {
       "email": "hi@nftdata.app"
     }
   },
+  "servers": [
+    {
+      "url": "https://www.nftdata.app",
+      "description": "Production"
+    }
+  ],
+  "tags": [
+    {
+      "name": "NFT Data",
+      "description": "Paid endpoints that return structured NFT collection and market data sourced from the OpenSea API. Each successful request costs 0.002 USDC, payable with x402 v2 or MPP evm/charge."
+    },
+    {
+      "name": "Meta",
+      "description": "Free, publicly accessible endpoints that describe the API itself. No payment is required."
+    }
+  ],
   "externalDocs": {
     "description": "NFT Data API Documentation",
     "url": "https://www.nftdata.app/docs"
@@ -18,12 +35,30 @@
       "post": {
         "operationId": "get_collection_data",
         "summary": "Get NFT collection data",
-        "description": "Returns structured NFT collection and market data for a given OpenSea collection slug. Requires USDC payment (0.002 USDC per request) via x402 v2 on Base mainnet or Solana mainnet, or MPP evm/charge on Base mainnet.",
-        "tags": ["NFT Data"],
+        "description": "Returns structured NFT collection and market data for a given OpenSea collection slug. Requires USDC payment (0.002 USDC per successful request) via x402 v2 on Base mainnet or Solana mainnet, or MPP evm/charge on Base mainnet. A request that carries no payment credential receives HTTP 402 with challenge headers for both protocols; the client may complete payment with either one. Rejected credentials and failed settlements also return HTTP 402; see the 402 response.",
+        "tags": [
+          "NFT Data"
+        ],
         "x-payment-info": {
           "protocols": [
-            { "x402": { "networks": ["eip155:8453", "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"], "scheme": "exact" } },
-            { "mpp": { "method": "evm", "intent": "charge", "networks": ["eip155:8453"] } }
+            {
+              "x402": {
+                "networks": [
+                  "eip155:8453",
+                  "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+                ],
+                "scheme": "exact"
+              }
+            },
+            {
+              "mpp": {
+                "method": "evm",
+                "intent": "charge",
+                "networks": [
+                  "eip155:8453"
+                ]
+              }
+            }
           ],
           "price": {
             "mode": "fixed",
@@ -40,18 +75,21 @@
                 "properties": {
                   "collection": {
                     "type": "string",
-                    "description": "OpenSea collection slug (e.g. 'azuki'). The slug is the unique identifier visible in the collection's OpenSea URL.",
+                    "description": "OpenSea collection slug (e.g. 'azuki'). The slug is the unique identifier visible in the collection's OpenSea URL. The collection slug is trimmed of surrounding whitespace before validation. After trimming, it must start with a lowercase letter or digit and contain only lowercase letters, digits, underscores, or hyphens. No automatic case conversion is performed.",
                     "minLength": 1,
                     "pattern": "^[a-z0-9][a-z0-9_-]*$"
                   }
                 },
-                "required": ["collection"]
+                "required": [
+                  "collection"
+                ]
               },
               "example": {
                 "collection": "azuki"
               }
             }
-          }
+          },
+          "description": "JSON body containing the OpenSea collection slug to look up."
         },
         "responses": {
           "200": {
@@ -75,8 +113,14 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "address": { "type": "string" },
-                          "chain": { "type": "string" }
+                          "address": {
+                            "type": "string",
+                            "description": "Contract address of the collection."
+                          },
+                          "chain": {
+                            "type": "string",
+                            "description": "Chain the contract is deployed on, as reported by OpenSea (for example 'base' or 'ethereum')."
+                          }
                         }
                       }
                     },
@@ -97,31 +141,52 @@
                       "description": "Trading volume in the last 24 hours."
                     },
                     "one_day_volume_currency": {
-                      "type": ["string", "null"],
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "description": "Currency symbol for 24-hour volume."
                     },
                     "seven_day_sales": {
-                      "type": ["number", "null"],
+                      "type": [
+                        "number",
+                        "null"
+                      ],
                       "description": "Number of sales in the last 7 days."
                     },
                     "seven_day_volume": {
-                      "type": ["number", "null"],
+                      "type": [
+                        "number",
+                        "null"
+                      ],
                       "description": "Trading volume in the last 7 days."
                     },
                     "seven_day_volume_currency": {
-                      "type": ["string", "null"],
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "description": "Currency symbol for 7-day volume."
                     },
                     "thirty_day_sales": {
-                      "type": ["number", "null"],
+                      "type": [
+                        "number",
+                        "null"
+                      ],
                       "description": "Number of sales in the last 30 days."
                     },
                     "thirty_day_volume": {
-                      "type": ["number", "null"],
+                      "type": [
+                        "number",
+                        "null"
+                      ],
                       "description": "Trading volume in the last 30 days."
                     },
                     "thirty_day_volume_currency": {
-                      "type": ["string", "null"],
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "description": "Currency symbol for 30-day volume."
                     },
                     "total_sales": {
@@ -133,7 +198,10 @@
                       "description": "Total lifetime trading volume."
                     },
                     "total_volume_currency": {
-                      "type": ["string", "null"],
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "description": "Currency symbol for total lifetime volume."
                     },
                     "num_owners": {
@@ -141,19 +209,31 @@
                       "description": "Current number of unique owners."
                     },
                     "total_supply": {
-                      "type": ["number", "null"],
+                      "type": [
+                        "number",
+                        "null"
+                      ],
                       "description": "Total number of NFTs in the collection."
                     },
                     "created_date": {
-                      "type": ["string", "null"],
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "description": "Collection creation date (ISO 8601)."
                     }
                   },
                   "required": [
-                    "name", "slug", "contracts",
-                    "floor_price", "floor_price_currency",
-                    "one_day_sales", "one_day_volume",
-                    "total_sales", "total_volume", "num_owners"
+                    "name",
+                    "slug",
+                    "contracts",
+                    "floor_price",
+                    "floor_price_currency",
+                    "one_day_sales",
+                    "one_day_volume",
+                    "total_sales",
+                    "total_volume",
+                    "num_owners"
                   ]
                 },
                 "example": {
@@ -184,43 +264,181 @@
                   "created_date": "2024-04-05"
                 }
               }
+            },
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "x402 settlement result, set by the x402 SDK after a successful settlement. Present only on responses to requests paid with x402 v2 (Base mainnet or Solana mainnet). Opaque value; clients should pass it to their x402 SDK.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Payment-Receipt": {
+                "description": "MPP payment receipt, attached by the MPP server library to the successful response. Present only on responses to requests paid with MPP evm/charge. Opaque value; clients should pass it to their MPP library.",
+                "schema": {
+                  "type": "string"
+                }
+              }
             }
           },
           "400": {
-            "description": "Bad request. Missing or invalid collection slug.",
+            "description": "Bad request. The request body could not be read or parsed as JSON, the collection slug is missing or fails validation (after surrounding whitespace is trimmed), or OpenSea rejected the input.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": { "type": "string" }
-                  }
+                    "error": {
+                      "type": "string",
+                      "description": "Human-readable error message."
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
                 }
               }
             }
           },
           "402": {
-            "description": "Payment Required. The response includes both PAYMENT-REQUIRED (x402 v2) and WWW-Authenticate: Payment (MPP evm/charge) challenge headers. Submit payment using either protocol."
-          },
-          "404": {
-            "description": "Collection not found.",
+            "description": "Payment Required. Which headers and body are returned depends on why payment is required:\n\n- No payment credential: both protocol challenges are returned, PAYMENT-REQUIRED (x402 v2) and WWW-Authenticate: Payment (MPP evm/charge). The client may pay with either protocol. The body is an empty JSON object.\n- Malformed x402 credential (PAYMENT-SIGNATURE header): observed to return PAYMENT-REQUIRED only, without WWW-Authenticate, and an empty JSON object body.\n- Malformed MPP credential (Authorization: Payment header): observed to return WWW-Authenticate together with a PAYMENT-REQUIRED header, and an application/problem+json body with type, title, status and detail.\n- x402 settlement failure after the data was retrieved: a JSON body with error \"settlement_failed\" and an optional reason, and no challenge headers.\n\nBoth challenge headers are therefore not present on every 402 response. A request must use one payment protocol or the other, not both. Behaviour for other kinds of rejected credentials is not documented here.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "x402 v2 payment requirements. Returned when no credential is sent and when a malformed x402 credential is sent; also observed on the response to a malformed MPP credential. Not returned on x402 settlement failures. x402 clients resolve it and retry with a PAYMENT-SIGNATURE request header.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP evm/charge challenge using the Payment authentication scheme. Returned when no credential is sent and when a malformed MPP credential is sent. Not returned for a malformed x402 credential or an x402 settlement failure. MPP clients resolve it and retry with an Authorization: Payment request header.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "description": "An empty object for challenge responses with no credential or with a malformed x402 credential. On x402 settlement failure it contains error and, when available, reason.",
                   "properties": {
-                    "error": { "type": "string" }
+                    "error": {
+                      "type": "string",
+                      "description": "Set to \"settlement_failed\" when x402 settlement fails after the data was retrieved."
+                    },
+                    "reason": {
+                      "type": "string",
+                      "description": "Failure reason reported by the x402 settlement step. Present only when available."
+                    }
+                  }
+                }
+              },
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Problem details returned for an MPP credential rejection (observed for a malformed credential).",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "Problem type identifier (URI)."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Short summary of the problem."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "HTTP status code of the problem (402)."
+                    },
+                    "detail": {
+                      "type": "string",
+                      "description": "Human-readable explanation of the problem."
+                    }
                   }
                 }
               }
             }
           },
+          "404": {
+            "description": "Collection not found. The slug does not match any OpenSea collection.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Human-readable error message."
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
           "429": {
-            "description": "Rate limit exceeded. Retry after the indicated delay.",
+            "description": "Rate limit exceeded. A Retry-After header is included only when OpenSea provided one.",
             "headers": {
               "Retry-After": {
-                "schema": { "type": "string" },
-                "description": "Seconds to wait before retrying."
+                "description": "Forwarded from OpenSea's Retry-After response header when OpenSea provides one; omitted otherwise. The value is passed through as received and is not normalised, so its format is whatever OpenSea sent.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Human-readable error message."
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error: server configuration error, an unexpected error, or the payment system being temporarily unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Human-readable error message."
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad gateway. The upstream OpenSea API returned a server error, rejected the service's credentials, or returned an unexpected response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Human-readable error message."
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
               }
             }
           }
@@ -231,15 +449,130 @@
       "get": {
         "operationId": "get_openapi_spec",
         "summary": "OpenAPI specification",
-        "description": "Returns this OpenAPI 3.1.0 specification. No payment required.",
-        "tags": ["Meta"],
+        "description": "Returns this OpenAPI 3.1.0 specification. Free and publicly accessible; no payment or authentication is required.",
+        "tags": [
+          "Meta"
+        ],
         "security": [],
         "responses": {
           "200": {
             "description": "OpenAPI 3.1.0 specification document.",
             "content": {
               "application/json": {
-                "schema": { "type": "object" }
+                "schema": {
+                  "type": "object",
+                  "description": "The OpenAPI 3.1.0 document describing this API.",
+                  "properties": {
+                    "openapi": {
+                      "type": "string",
+                      "description": "OpenAPI specification version (3.1.0)."
+                    },
+                    "info": {
+                      "type": "object",
+                      "description": "API metadata.",
+                      "properties": {
+                        "title": {
+                          "type": "string",
+                          "description": "API title."
+                        },
+                        "version": {
+                          "type": "string",
+                          "description": "API version."
+                        },
+                        "summary": {
+                          "type": "string",
+                          "description": "Short summary of the API."
+                        },
+                        "description": {
+                          "type": "string",
+                          "description": "Longer description of the API."
+                        },
+                        "x-guidance": {
+                          "type": "string",
+                          "description": "Usage guidance for AI agents."
+                        },
+                        "contact": {
+                          "type": "object",
+                          "properties": {
+                            "email": {
+                              "type": "string",
+                              "description": "Contact email address."
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "title",
+                        "version"
+                      ]
+                    },
+                    "servers": {
+                      "type": "array",
+                      "description": "Servers on which the API is available.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Server base URL."
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "Server description."
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      }
+                    },
+                    "tags": {
+                      "type": "array",
+                      "description": "Tags used to group operations.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Tag name."
+                          },
+                          "description": {
+                            "type": "string",
+                            "description": "Tag description."
+                          }
+                        },
+                        "required": [
+                          "name"
+                        ]
+                      }
+                    },
+                    "externalDocs": {
+                      "type": "object",
+                      "properties": {
+                        "description": {
+                          "type": "string",
+                          "description": "Description of the external documentation."
+                        },
+                        "url": {
+                          "type": "string",
+                          "description": "URL of the external documentation."
+                        }
+                      }
+                    },
+                    "paths": {
+                      "type": "object",
+                      "description": "Available paths and their operations, keyed by path.",
+                      "additionalProperties": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "required": [
+                    "openapi",
+                    "info",
+                    "paths"
+                  ]
+                }
               }
             }
           }
