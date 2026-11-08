@@ -1,3 +1,5 @@
+![NFT Data](https://raw.githubusercontent.com/Nomad07/nft-data/main/public/nftdata-banner.png)
+
 # NFT Data
 
 Structured NFT collection and market data for AI agents, delivered as an [ERC-8257 OpenSea Agent Tool](https://opensea.io/tools/erc8257/base/778).
