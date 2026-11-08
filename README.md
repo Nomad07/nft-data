@@ -2,21 +2,34 @@
 
 # NFT Data
 
-Structured NFT collection and market data for AI agents, delivered as an [ERC-8257 OpenSea Agent Tool](https://opensea.io/tools/erc8257/base/778).
+Multichain NFT collection and market data across 30 networks, using OpenSea API v2.
 
----
+NFT Data provides collection data through a free website, a paid API, and an MCP server for AI agents and developer tools.
 
-## What it does
+Look up any collection by its OpenSea slug to retrieve metadata, contract addresses, floor price, sales and trading volume across 24-hour, 7-day, 30-day and lifetime periods, as well as owner statistics.
 
-Given an OpenSea collection slug, NFT Data returns collection metadata, contract addresses, floor price, 24-hour / 7-day / 30-day / lifetime sales and volume, and owner statistics — sourced directly from OpenSea API v2.
+**Website**
 
-**Human users** can check any collection for free at [nftdata.app](https://www.nftdata.app/).
+Explore NFT collections and market data for free at [nftdata.app](https://www.nftdata.app/).
 
-**AI agents** call the paid API programmatically using either x402 v2 or MPP `evm/charge`:
+**Paid API**
 
-```
-POST https://www.nftdata.app/api/get-collection-data
-```
+Access the same data programmatically:
+
+`POST https://www.nftdata.app/api/get-collection-data`
+
+Each successful request costs $0.002 in USDC.
+
+- x402 v2 on Base and Solana mainnet
+- MPP (`evm/charge`) on Base mainnet
+
+**MCP Server**
+
+The [`nftdata-mcp`](https://github.com/Nomad07/nftdata-mcp) package provides an MCP interface to NFT Data through the `get_collection_data` tool. It supports x402 and MPP payments on Base mainnet at $0.002 per successful call.
+
+**OpenSea Agent Tool**
+
+NFT Data is also registered as [OpenSea Agent Tool #778](https://opensea.io/tools/erc8257/base/778), using the ERC-8257 standard on Base.
 
 ---
 
@@ -69,7 +82,7 @@ NFT Data is available as a published MCP server (`nftdata-mcp`) for developers a
 npx -y nftdata-mcp
 ```
 
-The MCP server exposes the `get_collection_data` tool, which calls the NFT Data API using x402 payments on Base mainnet. Each successful request costs **$0.002 in USDC**.
+The MCP server exposes the `get_collection_data` tool, which calls the NFT Data API and pays for each request on **Base mainnet** using either **x402** or **MPP**. Each successful request costs **$0.002 in USDC**. The MCP server pays on Base mainnet only; Solana payments are supported by the main NFT Data API, not by the MCP server.
 
 **Requirements:**
 - Node.js 20 or newer.
@@ -255,6 +268,8 @@ NFT Data is strictly **read-only**. It does not:
 
 The OpenSea API key is held server-side and is never exposed to callers or included in any response.
 
+**API versus MCP Server:** the main NFT Data API does not require API users to provide a wallet or private key. The [MCP Server](#mcp-server) is a separate local client that pays for each request, so it uses a dedicated funded wallet configured through `EVM_PRIVATE_KEY`.
+
 ---
 
 ## Cache
@@ -282,6 +297,7 @@ Responses are cached **in-memory for 60 seconds** per worker instance. The API r
 | Variable          | Required | Description                                                                                    |
 |-------------------|----------|------------------------------------------------------------------------------------------------|
 | `OPENSEA_API_KEY` | Yes      | OpenSea API v2 key. Used server-side only; never exposed to callers.                           |
+| `MPP_SECRET_KEY`  | Yes (paid endpoint) | Secret key (at least 32 bytes) used by the MPP payment flow of `/api/get-collection-data` to bind payment challenges to their contents. The MPP library throws "Missing secret key" if it is not set. |
 | `TOOL_ENDPOINT`   | No       | Override the manifest endpoint URL. Defaults to `https://www.nftdata.app/api/get-collection-data`. |
 
 ---
@@ -311,22 +327,31 @@ It describes the tool action, input/output schema, pricing, and creator address 
 
 ```
 api/
-  get-collection-data.ts   # Paid Vercel Edge function (x402-gated)
+  get-collection-data.ts   # Paid Vercel Node.js function (x402 and MPP payment-gated)
+  collect.ts               # Free Edge function for the website UI (origin-checked)
+  analyze.ts               # Edge function for the website UI's AI analysis (origin-checked)
   well-known/
     [slug].ts              # Serves the ERC-8257 manifest
 src/
   handler.ts               # Tool handler, input/output schemas, error mapping
   manifest.ts              # ERC-8257 manifest definition
   opensea.ts               # OpenSea API v2 client and in-memory cache
+test/
+  payment-routing.test.ts  # Payment routing tests (run with npm test)
 public/
   index.html               # Static website frontend
-  openapi.json             # OpenAPI 3.1 discovery document for x402scan
-  .well-known/x402         # x402 compatibility discovery document
+  docs/                    # API documentation pages (index.html, mcp/index.html)
+  openapi.json             # OpenAPI 3.1 discovery document for API clients, agents and registries
+  .well-known/             # x402, farcaster.json and x402gle-challenge.json discovery files
+  nftdata-banner.png       # README banner
   nft-data-icon.svg        # Tool icon (256×256)
   nft-data-banner.svg      # Featured banner (1200×400)
   favicon.svg              # Favicon (32×32)
+  nft-data-*.png           # Site logo, icon and preview images
+env.example                # Example environment variables
 vercel.json                # Build config and /.well-known/ai-tool/* rewrite
 tsconfig.json              # TypeScript config (NodeNext, strict)
+tsconfig.test.json         # TypeScript config for tests
 package.json               # Dependencies and scripts
 ```
 
@@ -349,6 +374,9 @@ npm run dev          # vercel dev — serves API routes and static files
 
 # Type-check
 npm run build
+
+# Run the tests
+npm test
 
 # Validate the ERC-8257 manifest
 npm run validate-manifest
