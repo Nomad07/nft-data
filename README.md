@@ -4,9 +4,9 @@
 
 Multichain NFT collection and market data across 30 networks, using OpenSea API v2.
 
-NFT Data provides collection data through a free website, a paid API, and an MCP server for AI agents and developer tools.
+Look up any collection by its OpenSea slug to retrieve metadata, contract addresses, floor price, sales and trading volume across 24-hour, 7-day, 30-day and lifetime periods, plus owner statistics.
 
-Look up any collection by its OpenSea slug to retrieve metadata, contract addresses, floor price, sales and trading volume across 24-hour, 7-day, 30-day and lifetime periods, as well as owner statistics.
+NFT Data makes this data available through a free website, a paid API, and an MCP server for AI agents and developer tools.
 
 **Website**
 
@@ -25,11 +25,7 @@ Each successful request costs $0.002 in USDC.
 
 **MCP Server**
 
-The [`nftdata-mcp`](https://github.com/Nomad07/nftdata-mcp) package provides an MCP interface to NFT Data through the `get_collection_data` tool. It supports x402 and MPP payments on Base mainnet at $0.002 per successful call.
-
-**OpenSea Agent Tool**
-
-NFT Data is also registered as [OpenSea Agent Tool #778](https://opensea.io/tools/erc8257/base/778), using the ERC-8257 standard on Base.
+The [NFT Data MCP server](https://github.com/Nomad07/nftdata-mcp) provides an MCP interface to NFT Data through the `get_collection_data` tool. It supports x402 and MPP payments on Base mainnet at $0.002 per successful call.
 
 ---
 
@@ -311,15 +307,6 @@ https://www.nftdata.app/.well-known/ai-tool/nft-data.json
 ```
 
 It describes the tool action, input/output schema, pricing, and creator address for agent and registry discovery. The manifest is generated from `src/manifest.ts` using `@opensea/tool-sdk`.
-
----
-
-## OpenSea Tool Registry
-
-- **Tool ID:** 778
-- **Network:** Base
-- **Registry page:** https://opensea.io/tools/erc8257/base/778
-- **Registry contract:** `0x265bb2dbfc0a8165c9a1941eb1372f349bad2cf1`
 
 ---
 

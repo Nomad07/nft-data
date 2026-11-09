@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MCP Server - NFT Data</title>
-  <meta name="description" content="nftdata-mcp: MCP server for the NFT Data API. Get OpenSea NFT collection market data in Claude Desktop and compatible MCP clients. x402 payments on Base mainnet, $0.002 per request." />
+  <meta name="description" content="nftdata-mcp: MCP server for the NFT Data API. Get OpenSea NFT collection market data in Claude Desktop and compatible MCP clients. x402 v2 or MPP payments on Base mainnet, $0.002 per request." />
   <link rel="canonical" href="https://www.nftdata.app/docs/mcp" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -503,7 +503,7 @@
       <strong style="color: var(--ink-2);">NFT Data MCP</strong> is a published MCP server that gives Claude Desktop and compatible MCP clients
       access to the NFT Data API through one tool: <strong style="color: var(--ink-2);">get_collection_data</strong>.
       Each successful non-cached request is paid automatically at <strong style="color: var(--ink-2);">$0.002 in USDC</strong>
-      on Base mainnet using x402. No API keys or subscriptions required.
+      on Base mainnet using x402 v2 (default) or MPP. No API keys or subscriptions required.
       The MCP server is a separate optional integration; the NFT Data API is accessible directly without it.
     </p>
   </header>
@@ -515,7 +515,7 @@
       <div class="overview-grid">
         <div class="overview-item">
           <div class="ov-label">Version</div>
-          <div class="ov-value">1.0.3</div>
+          <div class="ov-value">1.1.0</div>
         </div>
         <div class="overview-item">
           <div class="ov-label">Transport</div>
@@ -523,7 +523,7 @@
         </div>
         <div class="overview-item">
           <div class="ov-label">Payment</div>
-          <div class="ov-value">x402 on Base mainnet (USDC)</div>
+          <div class="ov-value">x402 v2 (default) or MPP (evm/charge), on Base mainnet (USDC)</div>
         </div>
         <div class="overview-item">
           <div class="ov-label">Price</div>
@@ -571,7 +571,7 @@
   "mcpServers": {
     "nftdata": {
       "command": "npx",
-      "args": ["-y", "nftdata-mcp@1.0.3"],
+      "args": ["-y", "nftdata-mcp@1.1.0"],
       "env": {
         "EVM_PRIVATE_KEY": "YOUR_EVM_PRIVATE_KEY"
       }
@@ -616,6 +616,12 @@
             <td><span class="badge-opt">optional</span></td>
             <td><code>100</code></td>
             <td>Maximum signed payments per session. Integer 1-1000; any value outside this range stops startup with an error.</td>
+          </tr>
+          <tr>
+            <td>NFTDATA_PAYMENT_PROTOCOL</td>
+            <td><span class="badge-opt">optional</span></td>
+            <td><code>x402</code></td>
+            <td>Payment protocol: <code>x402</code> or <code>mpp</code>. Unset or empty selects x402; any other value stops startup with an error. Chosen once at startup.</td>
           </tr>
           <tr>
             <td>NFTDATA_TIMEOUT_MS</td>
@@ -780,17 +786,37 @@
     </div>
   </section>
 
-  <!-- x402 payment -->
+  <!-- Payments -->
   <section class="doc-section" id="payment">
-    <h2 class="section-heading">x402 payments</h2>
+    <h2 class="section-heading">Payments: x402 and MPP</h2>
     <div class="payment-note" style="margin-bottom: 0;">
-      <strong>Base mainnet only.</strong> This MCP package supports x402 payments on Base mainnet exclusively.
-      Solana payments and MPP are not implemented in this package.
-      The NFT Data website and API support additional payment methods (x402 on Solana, MPP on Base),
-      but those do not apply to this MCP server.
+      <strong>Base mainnet only.</strong> This MCP server pays on Base mainnet exclusively, with USDC, using either
+      x402 v2 (default) or MPP (<code>evm/charge</code>). Solana payments are not supported by the MCP server.
+      The NFT Data website and API additionally accept x402 on Solana, but that does not apply to this MCP server.
     </div>
     <div class="card">
-      <p class="doc-text" style="margin-bottom: 12px;">Each request is paid automatically. The payment flow:</p>
+      <p class="doc-text" style="margin-bottom: 8px;"><strong>Payment protocols</strong></p>
+      <table class="param-table" style="margin-bottom: 14px;">
+        <thead><tr><th>Protocol</th><th>How it is selected</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>x402 v2</td>
+            <td>Default. Used when <code>NFTDATA_PAYMENT_PROTOCOL</code> is unset or empty.</td>
+          </tr>
+          <tr>
+            <td>MPP evm/charge</td>
+            <td>Set <code>NFTDATA_PAYMENT_PROTOCOL=mpp</code> in the MCP server environment.</td>
+          </tr>
+        </tbody>
+      </table>
+      <ul style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px;">
+        <li class="doc-text"><strong>One protocol per run.</strong> The protocol is selected once at server startup. The server never falls back from one protocol to the other and never switches during a run. If the API does not offer an acceptable payment in the selected protocol, nothing is signed and the call fails.</li>
+        <li class="doc-text">Only <code>x402</code> and <code>mpp</code> are accepted. Any other value (for example <code>auto</code> or <code>x402,mpp</code>) stops startup with an error.</li>
+        <li class="doc-text">Both protocols use the same dedicated EVM wallet (<code>EVM_PRIVATE_KEY</code>) and the same USDC balance on Base mainnet.</li>
+        <li class="doc-text">Price: <strong>$0.002 USDC</strong> per successful non-cached request in both protocols. Cache hits are free.</li>
+      </ul>
+
+      <p class="doc-text" style="margin-bottom: 12px;"><strong>x402 v2 (default).</strong> Each request is paid automatically. The payment flow:</p>
       <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
         <li class="doc-text">The server sends the API request.</li>
         <li class="doc-text">The API responds with <strong>HTTP 402</strong> and a payment challenge.</li>
@@ -806,6 +832,21 @@
         <li class="doc-text">If all values match, the wallet signs and submits the payment.</li>
         <li class="doc-text">The API returns the collection data and an on-chain transaction hash.</li>
       </ol>
+
+      <p class="doc-text" style="margin-bottom: 10px;"><strong>MPP mode.</strong> To pay with MPP (EVM charge, USDC on Base mainnet) instead of x402, add <code>NFTDATA_PAYMENT_PROTOCOL</code> to the <code>env</code> block of your MCP server configuration:</p>
+      <div class="code-block" style="margin-bottom: 12px;">
+        <div class="code-block-label">env block</div>
+        <pre>"env": {
+  "EVM_PRIVATE_KEY": "YOUR_EVM_PRIVATE_KEY",
+  "NFTDATA_PAYMENT_PROTOCOL": "mpp"
+}</pre>
+      </div>
+      <ul style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px;">
+        <li class="doc-text">The same checks apply before signing: Base mainnet, USDC, exactly <code>2000</code> atomic units ($0.002), and the official recipient. Payment splits are refused.</li>
+        <li class="doc-text">At most one payment credential is signed per tool call. A repeated 402 after payment is not retried.</li>
+        <li class="doc-text">The spend limit, the 5-minute cache, and de-duplication of concurrent identical calls work the same way in both modes.</li>
+      </ul>
+
       <p class="doc-text" style="margin-bottom: 14px;">
         Successful non-cached responses include a transaction hash and a BaseScan verification link.
         Cache hits (results served from the 5-minute per-slug cache) are free and do not include a new hash.
@@ -820,7 +861,7 @@
           </tr>
           <tr>
             <td>Payment network</td>
-            <td>Always Base mainnet, regardless of which chain the queried collection is on.</td>
+            <td>Always Base mainnet (USDC, via x402 or MPP), regardless of which chain the queried collection is on. Solana payments are not supported by the MCP server.</td>
           </tr>
         </tbody>
       </table>
@@ -839,7 +880,7 @@
           <span class="status-desc"><strong>Protect <code>EVM_PRIVATE_KEY</code>.</strong> Store it only in the Claude Desktop config file on your own machine. Never share it, paste it into chat, or commit it to version control.</span>
         </div>
         <div class="status-item">
-          <span class="status-desc"><strong>Challenge validation.</strong> The server validates the recipient address, token, network, scheme, and exact amount before signing any payment. Mismatched challenges are rejected.</span>
+          <span class="status-desc"><strong>Challenge validation.</strong> In both x402 and MPP modes, the server validates the recipient address, token, network, scheme or method, and exact amount before signing any payment. Mismatched challenges are rejected.</span>
         </div>
         <div class="status-item">
           <span class="status-desc"><strong>Verify on BaseScan.</strong> Every successful non-cached response includes a transaction hash. Verify at <a href="https://basescan.org" target="_blank" rel="noopener noreferrer">basescan.org</a>.</span>
@@ -858,6 +899,9 @@
         </div>
         <div class="status-item">
           <span class="status-desc">Every signed payment counts against the session limit (<code>NFTDATA_MAX_REQUESTS</code>), including payments for requests that later fail or time out.</span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc">The payment protocol (x402 by default, or MPP when <code>NFTDATA_PAYMENT_PROTOCOL=mpp</code>) is chosen once at startup. There is no fallback or protocol switching during a run.</span>
         </div>
         <div class="status-item">
           <span class="status-desc">No automatic retries. Each tool call makes at most one payment attempt.</span>
@@ -882,6 +926,9 @@
         </div>
         <div class="status-item">
           <span class="status-desc"><strong><code>EVM_PRIVATE_KEY</code> is missing or malformed.</strong> The key must be <code>0x</code> followed by exactly 64 hexadecimal characters. Check for extra whitespace or a missing <code>0x</code> prefix.</span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>Server fails at startup after setting <code>NFTDATA_PAYMENT_PROTOCOL</code>.</strong> Only <code>x402</code> or <code>mpp</code> are accepted, or leave it unset or empty for x402. Values such as <code>auto</code> or <code>x402,mpp</code> stop startup with an error.</span>
         </div>
         <div class="status-item">
           <span class="status-desc"><strong>Request limit reached.</strong> The session has reached <code>NFTDATA_MAX_REQUESTS</code>. Restart Claude Desktop to reset the counter, or increase the limit by setting a higher value in the config <code>env</code> block.</span>
@@ -960,6 +1007,9 @@ npm test        # offline unit tests, no network calls and no payments</pre>
         </div>
         <div class="status-item">
           <span class="status-desc"><strong>x402 docs:</strong> <a href="https://docs.x402.org/" target="_blank" rel="noopener noreferrer">https://docs.x402.org/</a></span>
+        </div>
+        <div class="status-item">
+          <span class="status-desc"><strong>MPP docs:</strong> <a href="https://mpp.dev/" target="_blank" rel="noopener noreferrer">https://mpp.dev/</a></span>
         </div>
         <div class="status-item">
           <span class="status-desc"><strong>BaseScan:</strong> <a href="https://basescan.org/" target="_blank" rel="noopener noreferrer">https://basescan.org/</a></span>
