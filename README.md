@@ -2,11 +2,9 @@
 
 # NFT Data
 
-Multichain NFT collection and market data across 30 networks, using OpenSea API v2.
+NFT Data is a pay-per-request multichain API for AI agents and developer tools, providing structured market data for OpenSea collections across 30 networks. Send a collection slug and get floor price, 24h/7d/30d/lifetime sales and volume, total supply, unique owners, contract addresses and creation date. Data is sourced from OpenSea API v2, with currencies reported as provided by the source (ETH, USDC, etc.).
 
-Look up any collection by its OpenSea slug to retrieve metadata, contract addresses, floor price, sales and trading volume across 24-hour, 7-day, 30-day and lifetime periods, plus owner statistics.
-
-NFT Data makes this data available through a free website, a paid API, and an MCP server for AI agents and developer tools.
+Each successful non-cached request costs $0.002, payable in USDC using x402 v2 (Base Mainnet or Solana Mainnet) or MPP evm/charge (Base Mainnet). No API keys or subscriptions required. NFT Data is also available through a free website and an MCP server for AI agents.
 
 **Website**
 
