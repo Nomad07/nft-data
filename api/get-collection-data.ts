@@ -34,6 +34,7 @@ import type { HTTPAdapter } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { ExactSvmScheme } from "@x402/svm/exact/server";
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from "@x402/extensions/bazaar";
+import { declareBuilderCodeExtension } from "@x402/extensions/builder-code";
 
 // ── MPP imports ───────────────────────────────────────────────────────────────
 import { Mppx, evm } from "mppx/server";
@@ -163,7 +164,10 @@ const httpServer = new x402HTTPResourceServer(resourceServer, {
     serviceName: "NFT Data",
     tags: ["nft", "opensea", "market-data", "collection"],
     iconUrl: "https://www.nftdata.app/nft-data-logo.png",
-    extensions: { ...bazaarExtension },
+    extensions: {
+      ...bazaarExtension,
+      "builder-code": declareBuilderCodeExtension("bc_szva7ptr"),
+    },
   },
 });
 
