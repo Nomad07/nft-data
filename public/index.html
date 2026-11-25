@@ -706,6 +706,16 @@
 
     .footer-right a:hover { color: var(--accent); opacity: 1; text-decoration: none; }
 
+    .footer-copy {
+      width: 100%;
+      margin-top: 6px;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--subtle);
+      text-align: center;
+      opacity: 0.7;
+    }
+
     .footer-links {
       display: flex;
       flex-wrap: wrap;
@@ -877,7 +887,9 @@
     <a href="/openapi.json" target="_blank" rel="noopener noreferrer">OpenAPI</a>
     <a href="/.well-known/ai-tool/nft-data.json" target="_blank" rel="noopener noreferrer">Manifest</a>
   </nav>
+  <p class="footer-copy">&copy; <span id="copyright-year">2026</span> NFT Data. All rights reserved.</p>
 </footer>
+<script>document.getElementById('copyright-year').textContent = new Date().getFullYear();</script>
 
 <script>
 (function () {

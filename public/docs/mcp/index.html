@@ -467,6 +467,16 @@
 
     .footer-right a:hover { color: var(--accent); opacity: 1; text-decoration: none; }
 
+    .footer-copy {
+      width: 100%;
+      margin-top: 6px;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--subtle);
+      text-align: center;
+      opacity: 0.7;
+    }
+
     .footer-links {
       display: flex;
       flex-wrap: wrap;
@@ -1035,7 +1045,9 @@ npm test        # offline unit tests, no network calls and no payments</pre>
     <a href="/docs/mcp" aria-current="page">MCP Server</a>
     <a href="/openapi.json" target="_blank" rel="noopener noreferrer">OpenAPI</a>
   </nav>
+  <p class="footer-copy">&copy; <span id="copyright-year">2026</span> NFT Data. All rights reserved.</p>
 </footer>
+<script>document.getElementById('copyright-year').textContent = new Date().getFullYear();</script>
 
 </body>
 </html>
